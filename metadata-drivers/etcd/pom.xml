@@ -49,6 +49,14 @@
       </exclusions>
     </dependency>
 
+    <!-- addition by GAIA (mvn compile) -->
+    <dependency>
+      <groupId>io.etcd</groupId>
+      <artifactId>jetcd-core</artifactId>
+      <version>0.7.5</version>
+    </dependency>
+    <!-- addition by GAIA (mvn compile) -->
+
     <dependency>
       <groupId>io.grpc</groupId>
       <artifactId>grpc-all</artifactId>
