@@ -72,50 +72,58 @@
     <module>tests</module>
     <module>native-io</module>
     <module>testtools</module>
-  </modules>
-  <mailingLists>
-    <mailingList>
-      <name>BookKeeper User</name>
-      <subscribe>user-subscribe@bookkeeper.apache.org</subscribe>
-      <unsubscribe>user-unsubscribe@bookkeeper.apache.org</unsubscribe>
-      <post>user@bookkeeper.apache.org</post>
-      <archive>https://www.mail-archive.com/user@bookkeeper.apache.org</archive>
-    </mailingList>
-    <mailingList>
-      <name>BookKeeper Dev</name>
-      <subscribe>dev-subscribe@bookkeeper.apache.org</subscribe>
-      <unsubscribe>dev-unsubscribe@bookkeeper.apache.org</unsubscribe>
-      <post>dev@bookkeeper.apache.org</post>
-      <archive>https://www.mail-archive.com/dev@bookkeeper.apache.org</archive>
-    </mailingList>
-    <mailingList>
-      <name>BookKeeper Commits</name>
-      <subscribe>commits-subscribe@bookkeeper.apache.org</subscribe>
-      <unsubscribe>commits-unsubscribe@bookkeeper.apache.org</unsubscribe>
-      <post>commits@bookkeeper.apache.org</post>
-      <archive>https://www.mail-archive.com/commits@bookkeeper.apache.org</archive>
-    </mailingList>
-  </mailingLists>
-  <developers>
-    <developer>
-      <name>The Apache BookKeeper Team</name>
-      <email>dev@bookkeeper.apache.org</email>
-      <url>https://bookkeeper.apache.org</url>
-      <organization>Apache Software Foundation</organization>
-      <organizationUrl>https://www.apache.org</organizationUrl>
-    </developer>
-  </developers>
-  <properties>
-    <maven.compiler.source>8</maven.compiler.source>
-    <maven.compiler.target>8</maven.compiler.target>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-    <redirectTestOutputToFile>true</redirectTestOutputToFile>
-    <testRetryCount>2</testRetryCount>
-    <src.dir>src/main/java</src.dir>
-    <test.additional.args />
+    <!-- addition by Gaia -->
+   <module>jacoco</module>
+    <!-- addition by Gaia -->
+ </modules>
+ <mailingLists>
+   <mailingList>
+     <name>BookKeeper User</name>
+     <subscribe>user-subscribe@bookkeeper.apache.org</subscribe>
+     <unsubscribe>user-unsubscribe@bookkeeper.apache.org</unsubscribe>
+     <post>user@bookkeeper.apache.org</post>
+     <archive>https://www.mail-archive.com/user@bookkeeper.apache.org</archive>
+   </mailingList>
+   <mailingList>
+     <name>BookKeeper Dev</name>
+     <subscribe>dev-subscribe@bookkeeper.apache.org</subscribe>
+     <unsubscribe>dev-unsubscribe@bookkeeper.apache.org</unsubscribe>
+     <post>dev@bookkeeper.apache.org</post>
+     <archive>https://www.mail-archive.com/dev@bookkeeper.apache.org</archive>
+   </mailingList>
+   <mailingList>
+     <name>BookKeeper Commits</name>
+     <subscribe>commits-subscribe@bookkeeper.apache.org</subscribe>
+     <unsubscribe>commits-unsubscribe@bookkeeper.apache.org</unsubscribe>
+     <post>commits@bookkeeper.apache.org</post>
+     <archive>https://www.mail-archive.com/commits@bookkeeper.apache.org</archive>
+   </mailingList>
+ </mailingLists>
+ <developers>
+   <developer>
+     <name>The Apache BookKeeper Team</name>
+     <email>dev@bookkeeper.apache.org</email>
+     <url>https://bookkeeper.apache.org</url>
+     <organization>Apache Software Foundation</organization>
+     <organizationUrl>https://www.apache.org</organizationUrl>
+   </developer>
+ </developers>
+ <properties>
+   <!-- addition by GAIA, to run JACOCO -->
+   <sonar.coverage.jacoco.xmlReportPaths>
+     ${maven.multiModuleProjectDirectory}/jacoco/target/site/jacoco-aggregate/jacoco.xml
+   </sonar.coverage.jacoco.xmlReportPaths>
+   <!-- addition by GAIA, to run JACOCO -->
+   <maven.compiler.source>8</maven.compiler.source>
+   <maven.compiler.target>8</maven.compiler.target>
+   <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+   <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+   <redirectTestOutputToFile>true</redirectTestOutputToFile>
+   <testRetryCount>2</testRetryCount>
+   <src.dir>src/main/java</src.dir>
+   <test.additional.args />
 
-    <!-- dependencies -->
+   <!-- dependencies -->
     <arquillian-cube.version>1.18.2</arquillian-cube.version>
     <arquillian-junit.version>1.8.0.Final</arquillian-junit.version>
     <bc-non-fips.version>1.78</bc-non-fips.version>
@@ -953,6 +961,7 @@
             </execution>
           </executions>
         </plugin>
+        <!-- addition by GAIA to run JACOCO
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-surefire-plugin</artifactId>
@@ -960,8 +969,8 @@
           <configuration>
             <excludedGroups>flaky</excludedGroups>
           </configuration>
-        </plugin>
-        <plugin>
+        </plugin> addition by GAIA to run JACOCO -->
+          <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-failsafe-plugin</artifactId>
           <version>${maven-surefire-plugin.version}</version>
@@ -1011,6 +1020,7 @@
           </compilerArgs>
         </configuration>
       </plugin>
+        <!-- addition by GAIA to run JACOCO
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
@@ -1024,7 +1034,8 @@
           <rerunFailingTestsCount>${testRetryCount}</rerunFailingTestsCount>
         </configuration>
       </plugin>
-      <plugin>
+        addition by GAIA to run JACOCO -->
+        <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-failsafe-plugin</artifactId>
       </plugin>
@@ -1307,7 +1318,8 @@
       <id>dev</id>
       <build>
         <plugins>
-          <plugin>
+            <!-- addition by GAIA to run JACOCO
+            <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-surefire-plugin</artifactId>
             <configuration>
@@ -1319,7 +1331,7 @@
               <trimStackTrace>false</trimStackTrace>
               <rerunFailingTestsCount>0</rerunFailingTestsCount>
             </configuration>
-          </plugin>
+          </plugin> addition by GAIA to run JACOCO -->
         </plugins>
       </build>
     </profile>
@@ -1327,7 +1339,8 @@
       <id>dev-debug</id>
       <build>
         <plugins>
-          <plugin>
+            <!-- addition by GAIA to run JACOCO
+            <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-surefire-plugin</artifactId>
             <configuration>
@@ -1339,6 +1352,7 @@
               <trimStackTrace>false</trimStackTrace>
             </configuration>
           </plugin>
+            addition by GAIA to run JACOCO -->
         </plugins>
       </build>
     </profile>
@@ -1457,5 +1471,29 @@
         <UBUNTU_SECURITY_MIRROR>${env.UBUNTU_SECURITY_MIRROR}</UBUNTU_SECURITY_MIRROR>
       </properties>
     </profile>
+    <!-- addition by Gaia to run JACOCO -->
+    <profile>
+      <id>coverage</id>
+      <activation>
+        <activeByDefault>true</activeByDefault>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.jacoco</groupId>
+            <artifactId>jacoco-maven-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>prepare-agent</id>
+                <goals>
+                  <goal>prepare-agent</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <!-- addition by Gaia to run JACOCO -->
   </profiles>
 </project>
