@@ -289,6 +289,9 @@
             <property>
               <name>listener</name>
               <value>org.apache.bookkeeper.common.testing.util.TimedOutTestsListener</value>
+              <!-- addition by GAIA to run EVOSUITE -->
+              <evosuiteVersion>1.0.6</evosuiteVersion>
+              <!-- addition by GAIA to run EVOSUITE -->
             </property>
           </properties>
         </configuration>
@@ -319,6 +322,18 @@
           </execution>
         </executions>
       </plugin>
+
+      <!-- addition by GAIA to run EVOSUITE -->
+      <plugin>
+        <groupId>org.evosuite.plugins</groupId>
+        <artifactId>evosuite-maven-plugin</artifactId>
+        <version>1.0.6</version>
+        <executions><execution>
+          <goals> <goal> prepare </goal> </goals>
+          <phase> process-test-classes </phase>
+        </execution></executions>
+      </plugin>
+      <!-- addition by GAIA to run EVOSUITE -->
     </plugins>
   </build>
   <profiles>
@@ -330,6 +345,14 @@
           <artifactId>vertx-http-server</artifactId>
           <version>${project.parent.version}</version>
         </dependency>
+        <!-- addition by GAIA to run EVOSUITE -->
+        <dependency>
+          <groupId>org.evosuite</groupId>
+          <artifactId>evosuite-standalone-runtime</artifactId>
+          <version>${evosuiteVersion}</version>
+          <scope>test</scope>
+        </dependency>
+        <!-- addition by GAIA to run EVOSUITE -->
       </dependencies>
     </profile>
     <profile>
@@ -353,6 +376,21 @@
               </execution>
             </executions>
           </plugin>
+          <!-- addition by GAIA to run EVOSUITE -->
+          <plugin>
+            <groupId>org.evosuite.plugins</groupId>
+            <artifactId>evosuite-maven-plugin</artifactId>
+            <version>${evosuiteVersion}</version>
+            <executions>
+              <execution>
+                <goals>
+                  <goal>prepare</goal>
+                </goals>
+                <phase>process-test-classes</phase>
+              </execution>
+            </executions>
+          </plugin>
+          <!-- addition by GAIA to run EVOSUITE -->
         </plugins>
       </build>
     </profile>
@@ -371,6 +409,14 @@
             <artifactId>maven-surefire-plugin</artifactId>
             <configuration>
               <skipTests>true</skipTests>
+              <!-- addition by GAIA to run EVOSUITE -->
+              <properties>
+                <property>
+                  <name>listener</name>
+                  <value>org.evosuite.runtime.InitializingListener</value>
+                </property>
+              </properties>
+              <!-- addition by GAIA to run EVOSUITE -->
             </configuration>
           </plugin>
         </plugins>

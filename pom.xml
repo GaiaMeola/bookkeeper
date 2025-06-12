@@ -851,6 +851,14 @@
         <artifactId>hppc</artifactId>
         <version>${hppc.version}</version>
       </dependency>
+        <!-- addition by GAIA to run EVOSUITE
+        <dependency>
+            <groupId>org.evosuite</groupId>
+            <artifactId>evosuite-standalone-runtime</artifactId>
+            <version>1.0.6</version>
+            <scope>test</scope>
+        </dependency>
+        addition by GAIA to run EVOSUITE -->
     </dependencies>
   </dependencyManagement>
 
@@ -1496,4 +1504,13 @@
     </profile>
     <!-- addition by Gaia to run JACOCO -->
   </profiles>
+    <!-- addition by GAIA to run EVOSUITE
+    <pluginRepositories>
+        <pluginRepository>
+            <id>evosuite-repo</id>
+            <name>EvoSuite Repository</name>
+            <url>http://www.evosuite.org/m2</url>
+        </pluginRepository>
+    </pluginRepositories>
+    addition by GAIA to run EVOSUITE -->
 </project>
