@@ -319,6 +319,27 @@
           </execution>
         </executions>
       </plugin>
+
+      <!-- addition by GAIA to run PIT -->
+      <plugin>
+        <groupId>org.pitest</groupId>
+        <artifactId>pitest-maven</artifactId>
+        <version>1.15.2</version>
+        <configuration>
+          <targetClasses>
+            <param>org.apache.bookkeeper.bookie.BufferedChannel</param>
+          </targetClasses>
+          <outputFormats>
+            <param>HTML</param>
+          </outputFormats>
+          <mutators>
+            <mutator>ALL</mutator>
+          </mutators>
+          <testPlugin>junit5</testPlugin>
+        </configuration>
+      </plugin>
+      <!-- addition by GAIA to run PIT -->
+
     </plugins>
   </build>
   <profiles>
