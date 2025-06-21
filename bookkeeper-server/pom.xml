@@ -82,15 +82,24 @@
         <groupId>io.netty</groupId>
         <artifactId>netty-transport-native-epoll</artifactId>
         <classifier>linux-x86_64</classifier>
+      <!-- addition by GAIA to RUN EVOSUITE -->
+      <version>4.1.89.Final</version>
+      <!-- addition by GAIA to RUN EVOSUITE -->
     </dependency>
     <dependency>
       <groupId>io.netty</groupId>
       <artifactId>netty-transport-native-epoll</artifactId>
       <classifier>linux-aarch_64</classifier>
+      <!-- addition by GAIA to RUN EVOSUITE -->
+      <version>4.1.89.Final</version>
+      <!-- addition by GAIA to RUN EVOSUITE -->
     </dependency>
     <dependency>
       <groupId>io.netty</groupId>
       <artifactId>netty-tcnative-boringssl-static</artifactId>
+      <!-- addition by GAIA to RUN EVOSUITE -->
+      <version>2.0.66.Final</version>
+      <!-- addition by GAIA to RUN EVOSUITE -->
     </dependency>
     <dependency>
       <groupId>org.apache.bookkeeper.http</groupId>
@@ -122,9 +131,16 @@
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-collections4</artifactId>
     </dependency>
+   <!-- delete to run EVOSUITE by Gaia
     <dependency>
       <groupId>org.bouncycastle</groupId>
       <artifactId>bc-fips</artifactId>
+    </dependency>
+    -->
+    <dependency>
+      <groupId>org.bouncycastle</groupId>
+      <artifactId>bcprov-jdk15to18</artifactId>
+      <version>1.70</version>
     </dependency>
     <dependency>
       <groupId>com.beust</groupId>
@@ -237,6 +253,14 @@
       <artifactId>awaitility</artifactId>
       <scope>test</scope>
     </dependency>
+    <!-- addition by GAIA to run EVOSUITE -->
+    <dependency>
+      <groupId>org.evosuite</groupId>
+      <artifactId>evosuite-standalone-runtime</artifactId>
+      <version>1.0.6</version>
+      <scope>test</scope>
+    </dependency>
+    <!-- addition by GAIA to run EVOSUITE -->
   </dependencies>
   <build>
     <plugins>
@@ -291,6 +315,9 @@
               <value>org.apache.bookkeeper.common.testing.util.TimedOutTestsListener</value>
             </property>
           </properties>
+          <!-- addition by GAIA to run EVOSUITE -->
+          <argLine>-Djava.net.preferIPv4Stack=true</argLine>
+          <!-- addition by GAIA to run EVOSUITE -->
         </configuration>
       </plugin>
       <plugin>
@@ -335,11 +362,38 @@
           <mutators>
             <mutator>ALL</mutator>
           </mutators>
-          <testPlugin>junit5</testPlugin>
         </configuration>
       </plugin>
       <!-- addition by GAIA to run PIT -->
 
+      <!-- addition by GAIA to run EVOSUITE -->
+      <plugin>
+        <groupId>org.evosuite.plugins</groupId>
+        <artifactId>evosuite-maven-plugin</artifactId>
+        <version>1.0.6</version>
+        <executions><execution>
+          <goals> <goal> prepare </goal> </goals>
+          <phase> process-test-classes </phase>
+        </execution></executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>${maven-surefire-plugin.version}</version>
+        <!-- addition by GAIA to run EVOSUITE -->
+        <configuration>
+          <properties>
+            <property>
+              <name>listener</name>
+              <value>org.evosuite.runtime.InitializingListener</value>
+            </property>
+          </properties>
+          <forkCount>1</forkCount>
+          <reuseForks>false</reuseForks>
+          <argLine>-Djava.net.preferIPv4Stack=true</argLine>
+        </configuration>
+      </plugin>
+      <!-- addition by GAIA to run EVOSUITE -->
     </plugins>
   </build>
   <profiles>
