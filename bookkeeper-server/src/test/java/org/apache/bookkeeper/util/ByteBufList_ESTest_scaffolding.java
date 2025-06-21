@@ -26,43 +26,21 @@ public class ByteBufList_ESTest_scaffolding {
   private org.evosuite.runtime.thread.ThreadStopper threadStopper =  new org.evosuite.runtime.thread.ThreadStopper (org.evosuite.runtime.thread.KillSwitchHandler.getInstance(), 3000);
 
 
-  /*@BeforeClass
+  @BeforeClass
   public static void initEvoSuiteFramework() { 
     org.evosuite.runtime.RuntimeSettings.className = "org.apache.bookkeeper.util.ByteBufList"; 
     org.evosuite.runtime.GuiSupport.initialize(); 
     org.evosuite.runtime.RuntimeSettings.maxNumberOfThreads = 100; 
     org.evosuite.runtime.RuntimeSettings.maxNumberOfIterationsPerLoop = 10000; 
     org.evosuite.runtime.RuntimeSettings.mockSystemIn = true;
-      //org.evosuite.runtime.RuntimeSettings.sandboxMode = SandboxMode.RECOMMENDED;
-    org.evosuite.runtime.RuntimeSettings.sandboxMode = SandboxMode.OFF;
+    org.evosuite.runtime.RuntimeSettings.sandboxMode = Sandbox.SandboxMode.RECOMMENDED;
     Sandbox.initializeSecurityManagerForSUT();
     org.evosuite.runtime.classhandling.JDKClassResetter.init();
     setSystemProperties();
     initializeClasses();
     org.evosuite.runtime.Runtime.getInstance().resetRuntime(); 
     try { initMocksToAvoidTimeoutsInTheTests(); } catch(ClassNotFoundException e) {} 
-  }*/
-
-  @BeforeClass
-  public static void initEvoSuiteFramework() {
-    System.setProperty("java.net.preferIPv4Stack", "true");
-    org.evosuite.runtime.RuntimeSettings.useVNET = false;
-
-    org.evosuite.runtime.RuntimeSettings.className = "org.apache.bookkeeper.util.ByteBufList";
-    org.evosuite.runtime.GuiSupport.initialize();
-    org.evosuite.runtime.RuntimeSettings.maxNumberOfThreads = 100;
-    org.evosuite.runtime.RuntimeSettings.maxNumberOfIterationsPerLoop = 10000;
-    org.evosuite.runtime.RuntimeSettings.mockSystemIn = true;
-    org.evosuite.runtime.RuntimeSettings.sandboxMode = Sandbox.SandboxMode.OFF;
-
-    org.evosuite.runtime.classhandling.JDKClassResetter.init();
-    setSystemProperties();
-    initializeClasses();
-    org.evosuite.runtime.Runtime.getInstance().resetRuntime();
-
-    try { initMocksToAvoidTimeoutsInTheTests(); } catch(ClassNotFoundException e) {}
   }
-
 
   @AfterClass 
   public static void clearEvoSuiteFramework(){ 
