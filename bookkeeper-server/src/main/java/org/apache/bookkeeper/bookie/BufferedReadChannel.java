@@ -126,4 +126,25 @@ public class BufferedReadChannel extends BufferedChannelBase {
         readBuffer.clear();
     }
 
+    /* Getter aggiunti per eseguire i test manuali */
+    public int getReadCapacity() {
+        return readCapacity;
+    }
+
+    public ByteBuf getReadBuffer() {
+        return readBuffer;
+    }
+
+    public long getInvocationCount() {
+        return invocationCount;
+    }
+
+    public long getCacheHitCount() {
+        return cacheHitCount;
+    }
+
+    public boolean isSealed() {
+        return sealed;
+    }
+
 }

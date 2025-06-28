@@ -297,7 +297,29 @@ public class BufferedChannel extends BufferedReadChannel implements Closeable {
         return writeBuffer.readableBytes();
     }
 
-    long getUnpersistedBytes() {
+    public long getUnpersistedBytes() {
         return unpersistedBytes.get();
+    }
+
+    /* Getter aggiunti per eseguire i test */
+
+    public int getWriteCapacity() {
+        return writeCapacity;
+    }
+
+    public ByteBuf getWriteBuffer() {
+        return writeBuffer;
+    }
+
+    public long getPosition() {
+        return position;
+    }
+
+    public boolean isClosed() {
+        return closed;
+    }
+
+    public long getUnpersistedBytesBound() {
+        return unpersistedBytesBound;
     }
 }

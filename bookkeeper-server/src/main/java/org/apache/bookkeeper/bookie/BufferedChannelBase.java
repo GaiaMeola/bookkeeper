@@ -25,6 +25,7 @@ import java.nio.channels.FileChannel;
  * to buffer the input and output data. This class is a base class for wrapping the {@link FileChannel}.
  */
 public abstract class BufferedChannelBase {
+
     static class BufferedChannelClosedException extends IOException {
         BufferedChannelClosedException() {
             super("Attempting to access a file channel that has already been closed");
@@ -55,4 +56,8 @@ public abstract class BufferedChannelBase {
         return validateAndGetFileChannel().size();
     }
 
+    /* Getter aggiunti per eseguire i test manuali */
+    public FileChannel getFileChannel() {
+        return fileChannel;
+    }
 }
