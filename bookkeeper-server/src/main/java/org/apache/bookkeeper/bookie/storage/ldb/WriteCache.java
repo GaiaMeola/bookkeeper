@@ -308,4 +308,39 @@ public class WriteCache implements Closeable {
     private int sortedEntriesIdx;
 
     private static final Logger log = LoggerFactory.getLogger(WriteCache.class);
+
+    /* Getter */
+
+    public ConcurrentLongLongPairHashMap getIndex() {
+        return index;
+    }
+
+    public ByteBuf[] getCacheSegments() {
+        return cacheSegments;
+    }
+
+    public int getSegmentsCount() {
+        return segmentsCount;
+    }
+
+    public long getMaxCacheSize() {
+        return maxCacheSize;
+    }
+
+    public int getMaxSegmentSize() {
+        return maxSegmentSize;
+    }
+
+    public long getSegmentOffsetMask() {
+        return segmentOffsetMask;
+    }
+
+    public long getSegmentOffsetBits() {
+        return segmentOffsetBits;
+    }
+
+    public ByteBufAllocator getAllocator() {
+        return allocator;
+    }
+
 }
