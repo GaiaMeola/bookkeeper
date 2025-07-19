@@ -107,5 +107,4 @@ class BufferedChannelConstructorTest {
         Path path = Paths.get(BC_TEST_FILE);
         if (Files.exists(path)) Files.delete(path);
     }
-
 }
