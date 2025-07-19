@@ -74,7 +74,8 @@
     <module>testtools</module>
     <!-- addition by Gaia -->
    <module>jacoco</module>
-    <!-- addition by Gaia -->
+      <module>scriptstest</module>
+      <!-- addition by Gaia -->
  </modules>
  <mailingLists>
    <mailingList>

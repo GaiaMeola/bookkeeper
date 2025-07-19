@@ -260,6 +260,12 @@
       <version>1.0.6</version>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.13.2</version>
+      <scope>test</scope>
+    </dependency>
     <!-- addition by GAIA to run EVOSUITE -->
   </dependencies>
   <build>
