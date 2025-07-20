@@ -255,6 +255,11 @@
     </dependency>
     <!-- addition by GAIA to run EVOSUITE -->
     <dependency>
+      <groupId>com.github.randoop</groupId>
+      <artifactId>randoop</artifactId>
+      <version>4.3.4</version>
+    </dependency>
+    <dependency>
       <groupId>org.evosuite</groupId>
       <artifactId>evosuite-standalone-runtime</artifactId>
       <version>1.0.6</version>
@@ -371,7 +376,6 @@
         </configuration>
       </plugin>
       <!-- addition by GAIA to run PIT -->
-
       <!-- addition by GAIA to run EVOSUITE -->
       <plugin>
         <groupId>org.evosuite.plugins</groupId>
