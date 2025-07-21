@@ -7,6 +7,7 @@ import io.netty.buffer.UnpooledByteBufAllocator;
 
 import java.io.IOException;
 import java.nio.channels.FileChannel;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -117,5 +118,11 @@ public class Utils {
         // buffer reference count starts from 1, release decrements it by 1 so deallocating the buffer
         buffer.release();
         return buffer;
+    }
+    public static ByteBuf writeOnlyByteBuf() {
+        ByteBuf buf = Unpooled.buffer();
+        buf.writeBytes(BC_BB_CONTENT.getBytes(StandardCharsets.UTF_8));
+        buf.readerIndex(buf.writerIndex()); // Nessun byte leggibile
+        return buf;
     }
 }

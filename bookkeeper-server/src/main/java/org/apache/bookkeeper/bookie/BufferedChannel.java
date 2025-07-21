@@ -38,6 +38,7 @@ public class BufferedChannel extends BufferedReadChannel implements Closeable {
      * The capacity of the write buffer.
      */
     protected final int writeCapacity;
+
     /**
      * The position of the file channel's write pointer.
      */
@@ -321,5 +322,9 @@ public class BufferedChannel extends BufferedReadChannel implements Closeable {
 
     public long getUnpersistedBytesBound() {
         return unpersistedBytesBound;
+    }
+
+    public AtomicLong getWriteBufferStartPosition() {
+        return writeBufferStartPosition;
     }
 }
