@@ -74,7 +74,6 @@
     <module>testtools</module>
     <!-- addition by Gaia -->
    <module>jacoco</module>
-      <module>scriptstest</module>
       <!-- addition by Gaia -->
  </modules>
  <mailingLists>
@@ -169,7 +168,8 @@
     <lombok.version>1.18.32</lombok.version>
     <log4j.version>2.23.1</log4j.version>
     <lz4.version>1.3.0</lz4.version>
-    <mockito.version>4.11.0</mockito.version>
+     <!-- 4.11.0 mockito  -->
+    <mockito.version>3.12.4</mockito.version>
     <netty.version>4.1.121.Final</netty.version>
     <netty-iouring.version>0.0.26.Final</netty-iouring.version>
     <prometheus.version>0.15.0</prometheus.version>
@@ -772,73 +772,73 @@
         <version>${awaitility.version}</version>
         <scope>test</scope>
       </dependency>
-      <dependency>
-        <groupId>org.mockito</groupId>
-        <artifactId>mockito-core</artifactId>
-        <version>${mockito.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.mockito</groupId>
-        <artifactId>mockito-inline</artifactId>
-        <version>${mockito.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.apache.hadoop</groupId>
-        <artifactId>hadoop-minikdc</artifactId>
-        <version>${hadoop.minikdc.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.arquillian.cube</groupId>
-        <artifactId>arquillian-cube-docker</artifactId>
-        <version>${arquillian-cube.version}</version>
-        <exclusions>
-          <exclusion>
-            <groupId>com.github.docker-java</groupId>
-            <artifactId>*</artifactId>
-          </exclusion>
-        </exclusions>
-      </dependency>
-      <dependency>
-        <groupId>javax.ws.rs</groupId>
-        <artifactId>javax.ws.rs-api</artifactId>
-        <version>2.1.1</version>
-      </dependency>
-      <dependency>
-        <groupId>org.jboss.arquillian.junit</groupId>
-        <artifactId>arquillian-junit-standalone</artifactId>
-        <version>${arquillian-junit.version}</version>
-        <exclusions>
-          <exclusion>
-            <groupId>com.github.docker-java</groupId>
-            <artifactId>*</artifactId>
-          </exclusion>
-        </exclusions>
-      </dependency>
-      <dependency>
-        <groupId>org.codehaus.groovy</groupId>
-        <artifactId>groovy-all</artifactId>
-        <version>${groovy.version}</version>
-        <type>pom</type>
-      </dependency>
-      <dependency>
-        <groupId>org.jboss.shrinkwrap.resolver</groupId>
-        <artifactId>shrinkwrap-resolver-impl-maven</artifactId>
-        <version>${shrinkwrap.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.jboss.shrinkwrap.resolver</groupId>
-        <artifactId>shrinkwrap-resolver-api</artifactId>
-        <version>${shrinkwrap.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.testcontainers</groupId>
-        <artifactId>testcontainers-bom</artifactId>
-        <version>${testcontainers.version}</version>
-        <type>pom</type>
-        <scope>import</scope>
-      </dependency>
+     <dependency>
+       <groupId>org.mockito</groupId>
+       <artifactId>mockito-core</artifactId>
+       <version>${mockito.version}</version>
+     </dependency>
+     <dependency>
+       <groupId>org.mockito</groupId>
+       <artifactId>mockito-inline</artifactId>
+       <version>${mockito.version}</version>
+     </dependency>
+     <dependency>
+       <groupId>org.apache.hadoop</groupId>
+       <artifactId>hadoop-minikdc</artifactId>
+       <version>${hadoop.minikdc.version}</version>
+     </dependency>
+     <dependency>
+       <groupId>org.arquillian.cube</groupId>
+       <artifactId>arquillian-cube-docker</artifactId>
+       <version>${arquillian-cube.version}</version>
+       <exclusions>
+         <exclusion>
+           <groupId>com.github.docker-java</groupId>
+           <artifactId>*</artifactId>
+         </exclusion>
+       </exclusions>
+     </dependency>
+     <dependency>
+       <groupId>javax.ws.rs</groupId>
+       <artifactId>javax.ws.rs-api</artifactId>
+       <version>2.1.1</version>
+     </dependency>
+     <dependency>
+       <groupId>org.jboss.arquillian.junit</groupId>
+       <artifactId>arquillian-junit-standalone</artifactId>
+       <version>${arquillian-junit.version}</version>
+       <exclusions>
+         <exclusion>
+           <groupId>com.github.docker-java</groupId>
+           <artifactId>*</artifactId>
+         </exclusion>
+       </exclusions>
+     </dependency>
+     <dependency>
+       <groupId>org.codehaus.groovy</groupId>
+       <artifactId>groovy-all</artifactId>
+       <version>${groovy.version}</version>
+       <type>pom</type>
+     </dependency>
+     <dependency>
+       <groupId>org.jboss.shrinkwrap.resolver</groupId>
+       <artifactId>shrinkwrap-resolver-impl-maven</artifactId>
+       <version>${shrinkwrap.version}</version>
+     </dependency>
+     <dependency>
+       <groupId>org.jboss.shrinkwrap.resolver</groupId>
+       <artifactId>shrinkwrap-resolver-api</artifactId>
+       <version>${shrinkwrap.version}</version>
+     </dependency>
+     <dependency>
+       <groupId>org.testcontainers</groupId>
+       <artifactId>testcontainers-bom</artifactId>
+       <version>${testcontainers.version}</version>
+       <type>pom</type>
+       <scope>import</scope>
+     </dependency>
 
-      <!-- benchmark dependencies -->
+     <!-- benchmark dependencies -->
       <dependency>
         <groupId>org.openjdk.jmh</groupId>
         <artifactId>jmh-core</artifactId>
@@ -1454,6 +1454,13 @@
                   <groupId>org.evosuite.plugins</groupId>
                   <artifactId>evosuite-maven-plugin</artifactId>
                   <version>1.1.0</version>
+                  <configuration>
+                      <excludedClasses>
+                          <excludedClass>org.mockito.internal.creation.bytebuddy.InlineByteBuddyMockMaker</excludedClass>
+                          <excludedClass>org.mockito.internal.creation.bytebuddy.InlineDelegateByteBuddyMockMaker</excludedClass>
+                          <excludedClass>org.mockito.plugins.MockMaker</excludedClass>
+                      </excludedClasses>
+                  </configuration>
               </plugin>
               <!-- addition by GAIA to run EVOSUITE -->
           </plugins>
