@@ -6,6 +6,7 @@ import io.netty.buffer.Unpooled;
 import io.netty.buffer.UnpooledByteBufAllocator;
 
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -85,11 +86,15 @@ public class Utils {
     public static ByteBuf emptyByteBuf() {
         return Unpooled.buffer(BC_BB_CONTENT.length()+BC_FC_CONTENT.length(), BC_BB_CONTENT.length()+BC_FC_CONTENT.length());
     }
+
     public static ByteBuf semiFullByteBuf() {
-        ByteBuf buffer = Unpooled.buffer(BC_BB_CONTENT.length(), BC_BB_CONTENT.length() );
-        buffer.writeBytes(BC_BB_CONTENT.substring(0, BC_BB_CONTENT.length()/2).getBytes());
+        int length = BC_FC_CONTENT.length() / 2;
+        int capacity = length * 2; // esattamente il doppio di quanto vuoi scrivere
+        ByteBuf buffer = Unpooled.buffer(capacity, capacity);
+        buffer.writeBytes(new byte[length]); // metà pieno
         return buffer;
     }
+
     public static ByteBuf fullByteBuf() {
         ByteBuf buffer = Unpooled.buffer(BC_BB_CONTENT.length(), BC_BB_CONTENT.length());
         buffer.writeBytes(BC_BB_CONTENT.getBytes());
@@ -102,11 +107,13 @@ public class Utils {
         when(buffer.readerIndex()).thenReturn(BC_BB_CONTENT.length() + 1);
         return buffer;
     } /* For read testing */
+
     public static ByteBuf invalidReadIndexByteBuf() {
         ByteBuf buffer = spy(fullByteBuf());
         when(buffer.readerIndex()).thenReturn(-1);
         return buffer;
     } /* For write testing */
+
     public static ByteBuf deallocatedByteBuf() {
         ByteBuf buffer = Unpooled.buffer(BC_BB_CONTENT.length());
         buffer.writeBytes(BC_BB_CONTENT.getBytes());
@@ -119,5 +126,34 @@ public class Utils {
         buf.writeBytes(BC_BB_CONTENT.getBytes(StandardCharsets.UTF_8));
         buf.readerIndex(buf.writerIndex()); // Nessun byte leggibile
         return buf;
+    }
+
+    public static void clearReadBuffer(Object bc) {
+        try {
+            Class<?> clazz = bc.getClass();
+            Field readBufferField = null, startPosField = null;
+
+            while (clazz != null) {
+                try {
+                    readBufferField = clazz.getDeclaredField("readBuffer");
+                    readBufferField.setAccessible(true);
+                    startPosField = clazz.getDeclaredField("readBufferStartPosition");
+                    startPosField.setAccessible(true);
+                    break;
+                } catch (NoSuchFieldException e) {
+                    clazz = clazz.getSuperclass();
+                }
+            }
+            if (readBufferField == null || startPosField == null) {
+                throw new RuntimeException("Fields not found");
+            }
+
+            ByteBuf readBuffer = (ByteBuf) readBufferField.get(bc);
+            if (readBuffer != null) readBuffer.clear();
+            startPosField.setLong(bc, Long.MAX_VALUE);
+
+        } catch (Exception e) {
+            throw new RuntimeException("Error resetting readBuffer: " + e.getMessage(), e);
+        }
     }
 }
