@@ -2,7 +2,6 @@ package manualtest;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
-import io.netty.buffer.Unpooled;
 import org.apache.bookkeeper.bookie.BufferedChannel;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -29,7 +28,9 @@ class BufferedChannelReadTest {
     private static Stream<Arguments> data() {
         try {
 
+            /*
             BufferedChannelState t2Invalid = new BufferedChannelState(invalidByteBufAllocator(),  validFileChannel(),100, 100, 1);
+             */
             BufferedChannelState t7Invalid = new BufferedChannelState(unpooledByteBufAllocator(), invalidPositionFileChannel(), 100, 100, 1);
             BufferedChannelState t5Invalid = new BufferedChannelState(unpooledByteBufAllocator(), writeOnlyFileChannel(),       100, 100, 1);
             BufferedChannelState t13Invalid = new BufferedChannelState(invalidByteBufAllocator(),  validFileChannel(),           100,   0, 1);
@@ -145,9 +146,7 @@ class BufferedChannelReadTest {
         }
 
         if (expectedException != null) {
-            Assertions.assertThrows(expectedException, () -> {
-                bc.read(dest, pos, length);
-            });
+            Assertions.assertThrows(expectedException, () -> bc.read(dest, pos, length));
         }
         else {
             try {
