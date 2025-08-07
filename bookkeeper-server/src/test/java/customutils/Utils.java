@@ -156,4 +156,10 @@ public class Utils {
             throw new RuntimeException("Error resetting readBuffer: " + e.getMessage(), e);
         }
     }
+
+    public static ByteBuf lenFullByteBuf(int size) {
+        ByteBuf buffer = Unpooled.buffer(size, size);
+        buffer.writeBytes(new byte[size]); // Scrive 'size' byte (tutti a 0)
+        return buffer;
+    }
 }

@@ -27,6 +27,7 @@ import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.Unpooled;
 import java.io.Closeable;
 import java.io.IOException;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.LongAdder;
 import java.util.concurrent.locks.ReentrantLock;
@@ -319,28 +320,15 @@ public class WriteCache implements Closeable {
         return cacheSegments;
     }
 
-    public int getSegmentsCount() {
-        return segmentsCount;
-    }
-
-    public long getMaxCacheSize() {
-        return maxCacheSize;
-    }
-
     public int getMaxSegmentSize() {
         return maxSegmentSize;
-    }
-
-    public long getSegmentOffsetMask() {
-        return segmentOffsetMask;
-    }
-
-    public long getSegmentOffsetBits() {
-        return segmentOffsetBits;
     }
 
     public ByteBufAllocator getAllocator() {
         return allocator;
     }
 
+    public Map<Long, Long> getLastEntryMap() {
+        return lastEntryMap.asMap();
+    }
 }
