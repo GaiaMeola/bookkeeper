@@ -6,6 +6,7 @@ import io.netty.buffer.Unpooled;
 import org.apache.bookkeeper.bookie.storage.ldb.WriteCache;
 import org.apache.bookkeeper.util.collections.ConcurrentLongLongPairHashMap;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -64,38 +65,34 @@ class WriteCachePutTest {
                 Arguments.of(validTwoSegmentUnWritten, 1, 2, fullByteBuf(), true, null),
 
                 // Test 4: entryId negativo; test passato
-                Arguments.of(validTwoSegmentUnWritten, 1, -1, fullByteBuf(), false, Exception.class)
+                Arguments.of(validTwoSegmentUnWritten, 1, -1, fullByteBuf(), false, Exception.class),
 
-                /*
+                // Test 5: entryId nullo; test passato
+                Arguments.of(validTwoSegmentUnWritten, 1, 0, fullByteBuf(), true, null),
 
-                // Test 5: entryId valido ma più vecchio
-                Arguments.of(validOneSegWritten, 1, 1, fullByteBuf(), true, null), // non aggiorna lastEntryMap
+                // Test 6: entryId positivo; test passato
+                Arguments.of(validTwoSegmentUnWritten, 1, 1, fullByteBuf(), true, null),
 
-                // Test 6: entryId duplicato
-                Arguments.of(validOneSegWritten, 1, 2, fullByteBuf(), true, null), // duplicato, stessa entryId
+                // Test 7: entryId positivo; test passato
+                Arguments.of(validTwoSegmentUnWritten, 1, 2, fullByteBuf(), true, null),
 
-                // Test 7: entryId valido e nuovo
-                Arguments.of(validOneSegWritten, 1, 3, fullByteBuf(), true, null),
+                // Test 8: entry vuota; test passato
+                Arguments.of(validTwoSegmentUnWritten, 1, 2, emptyByteBuf(), true, null),
 
-                // Test 8: entry vuota
-                Arguments.of(validTwoSegmentUnWritten, 1, 1, emptyByteBuf(), true, null),
+                // Test 9: entry che sta in un singolo segmento; test passato
+                Arguments.of(validTwoSegmentUnWritten, 1, 2, lenFullByteBuf(100), true, null),
 
-                // Test 9: entry che sta in un singolo segmento
-                Arguments.of(validTwoSegmentUnWritten, 1, 1, lenFullByteBuf(100), true, null),
+                // Test 10: entry che supera maxSegmentSize; test passato
+                Arguments.of(validTwoSegmentUnWritten, 1, 2, lenFullByteBuf(300), false, null),
 
-                // Test 10: entry che supera maxSegmentSize
-                Arguments.of(validTwoSegmentUnWritten, 1, 1, lenFullByteBuf(300), false, null),
-
-                // Test 11: entry con indice di lettura errato
+                // Test 11: entry con indice di lettura errato; test passato
                 Arguments.of(validTwoSegmentUnWritten, 1, 1, invalidReadIndexByteBuf(), false, Exception.class),
 
-                // Test 12: entry deallocata
+                // Test 12: entry deallocata; test passato
                 Arguments.of(validTwoSegmentUnWritten, 1, 1, deallocatedByteBuf(), false, Exception.class),
 
                 // Test 13: entry null
-                Arguments.of(validTwoSegmentUnWritten, 1, 1, null, false, Exception.class),
-
-               */
+                Arguments.of(validTwoSegmentUnWritten, 1, 1, null, false, Exception.class)
         );
     }
 
@@ -157,6 +154,35 @@ class WriteCachePutTest {
         }
     }
 
+    @Test
+    @Timeout(value = 5, threadMode = Timeout.ThreadMode.SEPARATE_THREAD)
+    void testLastEntryMapBehaviorWithSequentialPuts() {
+
+        // Setup iniziale
+        WriteCacheState s = new WriteCacheState(unpooledByteBufAllocator(), 512, 256, WcType.NON_WRITTEN);
+        WriteCache wc = new WriteCache(s.allocator, s.maxCacheSize, s.maxSegmentSize);
+        long ledgerId = 1L;
+
+        // Caso 1: Inserisco entryId = 1 (nuova entry)
+        ByteBuf entry1 = fullByteBuf();
+        Assertions.assertTrue(wc.put(ledgerId, 1L, entry1), "Put 1L failed");
+        Assertions.assertEquals(1L, wc.getLastEntryMap().get(ledgerId), "After first put, lastEntryId should be 1");
+
+        // Caso 2: Inserisco entryId = 0 (più vecchia)
+        ByteBuf entry0 = fullByteBuf();
+        Assertions.assertTrue(wc.put(ledgerId, 0L, entry0), "Put 0L failed (should succeed but not update)");
+        Assertions.assertEquals(1L, wc.getLastEntryMap().get(ledgerId), "After older put, lastEntryId should remain 1");
+
+        // Caso 3: Inserisco di nuovo entryId = 1 (duplicato)
+        ByteBuf entry1Dup = fullByteBuf();
+        Assertions.assertTrue(wc.put(ledgerId, 1L, entry1Dup), "Put duplicate 1L failed");
+        Assertions.assertEquals(1L, wc.getLastEntryMap().get(ledgerId), "After duplicate put, lastEntryId should remain 1");
+
+        // Caso 4: Inserisco entryId = 2 (più nuova)
+        ByteBuf entry2 = fullByteBuf();
+        Assertions.assertTrue(wc.put(ledgerId, 2L, entry2), "Put 2L failed");
+        Assertions.assertEquals(2L, wc.getLastEntryMap().get(ledgerId), "After newer put, lastEntryId should update to 2");
+    }
 
     private static WriteCacheState nullAllocatorState() {
         return new WriteCacheState(null, 256, 256, WcType.NON_WRITTEN);
