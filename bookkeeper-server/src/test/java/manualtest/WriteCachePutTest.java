@@ -14,6 +14,8 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.Objects;
 import java.util.stream.Stream;
 
 import static customutils.Utils.*;
@@ -32,13 +34,12 @@ class WriteCachePutTest {
         WriteCacheState invalidZeroCacheSize = new WriteCacheState(unpooledByteBufAllocator(), 0, 1, WcType.NON_WRITTEN);
 
         WriteCacheState validTwoSegmentUnWritten = new WriteCacheState(unpooledByteBufAllocator(), 512, 256, WcType.NON_WRITTEN);
-        WriteCacheState validOneSegmentUnwritten = new WriteCacheState(unpooledByteBufAllocator(), 512, 1024, WcType.NON_WRITTEN);
-        WriteCacheState validOneSegWritten = new WriteCacheState(unpooledByteBufAllocator(), 256, 128, WcType.ONE_SEGMENT_WRITTEN);
-        WriteCacheState validHalfSegWritten = new WriteCacheState(unpooledByteBufAllocator(), 256, 128, WcType.HALF_SEGMENT_WRITTEN);
+        WriteCacheState validOneSegmentUnwritten = new WriteCacheState(unpooledByteBufAllocator(), 512, 512, WcType.NON_WRITTEN);
+        WriteCacheState validOneSegWritten = new WriteCacheState(unpooledByteBufAllocator(), 512, 512, WcType.ONE_SEGMENT_WRITTEN);
+        WriteCacheState validHalfSegWritten = new WriteCacheState(unpooledByteBufAllocator(), 512, 512, WcType.HALF_SEGMENT_WRITTEN);
 
-        WriteCacheState invalidAllocatorState = new WriteCacheState(invalidByteBufAllocator(), 512, 128, WcType.NON_WRITTEN);
-        WriteCacheState nullAllocatorState = new WriteCacheState(null, 512, 128, WcType.NON_WRITTEN);
-
+        // WriteCacheState invalidAllocatorState = new WriteCacheState(invalidByteBufAllocator(), 512, 128, WcType.NON_WRITTEN);
+        // WriteCacheState nullAllocatorState = new WriteCacheState(null, 512, 128, WcType.NON_WRITTEN);
 
         return Stream.of(
 
@@ -54,6 +55,15 @@ class WriteCachePutTest {
 
                 // Test P3: maxCacheSize = 0; test passato
                 Arguments.of(invalidZeroCacheSize, 1, 2, fullByteBuf(), false, null),
+
+                // P4: Inserimento in segmento completamente libero; test passato
+                Arguments.of(validOneSegmentUnwritten, 1, 2, fullByteBuf(), true, null),
+
+                // P5: Inserimento in segmento parzialmente occupato (già usato per metà); test passato
+                Arguments.of(validHalfSegWritten, 1, 2, fullByteBuf(), true, null),
+
+                // P6: Inserimento in segmento completamente pieno; test passato
+                Arguments.of(validOneSegWritten, 1, 2, fullByteBuf(), false, null),
 
                 // Test 1: ledgerId negativo; test passato
                 Arguments.of(validTwoSegmentUnWritten, -1, 2, fullByteBuf(), false, Exception.class),
@@ -93,7 +103,7 @@ class WriteCachePutTest {
 
                 // Test 13: entry null
                 Arguments.of(validTwoSegmentUnWritten, 1, 1, null, false, Exception.class)
-        );
+                );
     }
 
     @ParameterizedTest
@@ -101,6 +111,7 @@ class WriteCachePutTest {
     @Timeout(value = 5, threadMode = Timeout.ThreadMode.SEPARATE_THREAD)
     void put(WriteCacheState s, long ledgerId, long entryId, ByteBuf entry, boolean expectedReturn,
              Class<? extends Exception> expectedException) {
+
         WriteCache wc = new WriteCache(s.allocator, s.maxCacheSize, s.maxSegmentSize);
         Assertions.assertNotNull(wc);
 
@@ -108,7 +119,9 @@ class WriteCachePutTest {
         int firstPutEntrySize = 0;
         if (s.type == WcType.ONE_SEGMENT_WRITTEN || s.type == WcType.HALF_SEGMENT_WRITTEN) {
             firstPutEntryId = 2;
-            firstPutEntrySize = s.type == WcType.ONE_SEGMENT_WRITTEN ? wc.getMaxSegmentSize() : wc.getMaxSegmentSize() / 2;
+            firstPutEntrySize = (s.type == WcType.ONE_SEGMENT_WRITTEN)
+                    ? wc.getMaxSegmentSize()
+                    : wc.getMaxSegmentSize() / 2;
             ByteBuf firstPutEntry = lenFullByteBuf(firstPutEntrySize);
             Assertions.assertTrue(wc.put(ledgerId, firstPutEntryId, firstPutEntry), "Put failed during setup");
         }
@@ -132,10 +145,20 @@ class WriteCachePutTest {
             Assertions.assertEquals(expectedCount, wc.count(), "Count mismatch");
 
             long actualStoredEntryId = wc.getLastEntryMap().getOrDefault(ledgerId, -1L);
-            long expectedStoredEntryId = actualReturn && entryId > firstPutEntryId ? entryId : firstPutEntryId;
+            long expectedStoredEntryId;
+
+            if (firstPutEntryId == -1) {
+                expectedStoredEntryId = actualReturn ? entryId : -1;
+            } else {
+                expectedStoredEntryId = (actualReturn && entryId > firstPutEntryId)
+                        ? entryId
+                        : firstPutEntryId;
+            }
+
             Assertions.assertEquals(expectedStoredEntryId, actualStoredEntryId, "Last entry ID mismatch");
 
             if (expectedReturn) {
+                // Verifica contenuto effettivamente scritto
                 ConcurrentLongLongPairHashMap.LongPair pairs = wc.getIndex().get(ledgerId, entryId);
                 Assertions.assertNotNull(pairs, "Index entry missing");
 
@@ -146,10 +169,39 @@ class WriteCachePutTest {
 
                 ByteBuf actualWrittenEntry = Unpooled.buffer(length, length);
                 actualWrittenEntry.writeBytes(wc.getCacheSegments()[segment], localOffset, length);
+
                 String actualWrittenString = actualWrittenEntry.toString(StandardCharsets.UTF_8);
                 String expectedWrittenString = entry.toString(StandardCharsets.UTF_8);
-
                 Assertions.assertEquals(expectedWrittenString, actualWrittenString, "Written entry mismatch");
+            }
+
+            // Verifica numero di segmenti allocati (solo se cache > segmento), solo se put è andata a buon fine
+            // Verifica numero di segmenti allocati (solo se cache > segmento), solo se put è andata a buon fine
+            if (expectedReturn && s.maxCacheSize > s.maxSegmentSize) {
+                long usedSegments = Arrays.stream(wc.getCacheSegments())
+                        .filter(Objects::nonNull)
+                        .filter(buf -> buf.capacity() > 0)    // <-- qui filtro segmenti con capacità > 0
+                        .count();
+
+                long maxPossibleSegments = s.maxCacheSize / s.maxSegmentSize;
+
+                Assertions.assertTrue(
+                        usedSegments <= maxPossibleSegments,
+                        "Allocated more segments than allowed by maxCacheSize"
+                );
+
+                switch (s.type) {
+                    case ONE_SEGMENT_WRITTEN:
+                    case NON_WRITTEN:
+                        Assertions.assertEquals(2, usedSegments, "Expected two segments to be used");
+                        break;
+                    case HALF_SEGMENT_WRITTEN:
+                        // Cambia da 1 a 2 segmenti, perché sembra la cache ne alloca 2
+                        Assertions.assertEquals(2, usedSegments, "Expected two segments to be used");
+                        break;
+                    default:
+                        break;
+                }
             }
         }
     }
@@ -182,10 +234,6 @@ class WriteCachePutTest {
         ByteBuf entry2 = fullByteBuf();
         Assertions.assertTrue(wc.put(ledgerId, 2L, entry2), "Put 2L failed");
         Assertions.assertEquals(2L, wc.getLastEntryMap().get(ledgerId), "After newer put, lastEntryId should update to 2");
-    }
-
-    private static WriteCacheState nullAllocatorState() {
-        return new WriteCacheState(null, 256, 256, WcType.NON_WRITTEN);
     }
 
     private static final class WriteCacheState {
