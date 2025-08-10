@@ -50,7 +50,7 @@ class WriteCachePutTest {
 
                 /*
                 // Test P2: allocator nullo; test fallito
-                Arguments.of(nullAllocatorState(), 1, 2, fullByteBuf(), false, Exception.class)
+                Arguments.of(nullAllocatorState, 1, 2, fullByteBuf(), false, Exception.class)
                 */
 
                 // Test P3: maxCacheSize = 0; test passato
