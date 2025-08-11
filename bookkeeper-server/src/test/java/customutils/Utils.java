@@ -4,6 +4,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.Unpooled;
 import io.netty.buffer.UnpooledByteBufAllocator;
+import org.apache.bookkeeper.bookie.storage.ldb.WriteCache;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -121,12 +122,6 @@ public class Utils {
         buffer.release();
         return buffer;
     }
-    public static ByteBuf writeOnlyByteBuf() {
-        ByteBuf buf = Unpooled.buffer();
-        buf.writeBytes(BC_BB_CONTENT.getBytes(StandardCharsets.UTF_8));
-        buf.readerIndex(buf.writerIndex()); // Nessun byte leggibile
-        return buf;
-    }
 
     public static void clearReadBuffer(Object bc) {
         try {
@@ -162,4 +157,15 @@ public class Utils {
         buffer.writeBytes(new byte[size]); // Scrive 'size' byte (tutti a 0)
         return buffer;
     }
+
+    /**
+     * Restituisce un mock di EntryConsumer che lancia IOException ad ogni chiamata di accept.
+     */
+    public static WriteCache.EntryConsumer exceptionThrowingConsumer() throws IOException {
+        WriteCache.EntryConsumer mockConsumer = mock(WriteCache.EntryConsumer.class);
+        doThrow(new IOException("forced exception from mock consumer")).when(mockConsumer)
+                .accept(anyLong(), anyLong(), any(ByteBuf.class));
+        return mockConsumer;
+    }
+
 }
