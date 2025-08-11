@@ -9,7 +9,6 @@ import org.apache.bookkeeper.bookie.storage.ldb.WriteCache;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.nio.channels.FileChannel;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -159,13 +158,12 @@ public class Utils {
     }
 
     /**
-     * Restituisce un mock di EntryConsumer che lancia IOException ad ogni chiamata di accept.
+     * Restituisce un mock di EntryConsumer che lancia RuntimeException ad ogni chiamata di accept.
+     * Questo simula un consumer "non valido" che genera un errore durante l'iterazione.
      */
-    public static WriteCache.EntryConsumer exceptionThrowingConsumer() throws IOException {
-        WriteCache.EntryConsumer mockConsumer = mock(WriteCache.EntryConsumer.class);
-        doThrow(new IOException("forced exception from mock consumer")).when(mockConsumer)
-                .accept(anyLong(), anyLong(), any(ByteBuf.class));
-        return mockConsumer;
+    public static WriteCache.EntryConsumer invalidConsumer() {
+        return (ledgerId, entryId, entry) -> {
+            throw new RuntimeException("forced runtime exception from invalid consumer");
+        };
     }
-
 }

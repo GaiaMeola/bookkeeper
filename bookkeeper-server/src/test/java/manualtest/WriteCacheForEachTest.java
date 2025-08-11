@@ -28,7 +28,7 @@ class WriteCacheForEachTest {
 
     private enum ConsumerType {
         VALID,
-        THROWING_EXCEPTION,
+        INVALID,
         NULL
     }
 
@@ -55,14 +55,22 @@ class WriteCacheForEachTest {
                 //Arguments.of(nullAllocatorState, CacheState.WRITTEN, ConsumerType.VALID, validConsumer, Exception.class)
 
                 /*test F3; test passato */
-                Arguments.of(zeroCacheSizeState, CacheState.EMPTY, ConsumerType.VALID, validConsumer, null)
+                Arguments.of(zeroCacheSizeState, CacheState.EMPTY, ConsumerType.VALID, null, null),
 
-                /*test F2; test */
-                //Arguments.of(validState, CacheState.WRITTEN, ConsumerType.VALID, validConsumer, null)
-                // , Arguments.of(zeroCacheSizeState, CacheState.EMPTY, ConsumerType.VALID, validConsumer, null),
-                // Arguments.of(nullAllocatorState, CacheState.EMPTY, ConsumerType.VALID, validConsumer, Exception.class),
-                // Arguments.of(invalidAllocatorState, CacheState.EMPTY, ConsumerType.VALID, validConsumer, Exception.class),
-                // Arguments.of(validState, CacheState.WRITTEN, ConsumerType.THROWING_EXCEPTION, exceptionConsumer, IOException.class)
+                /*test t1; test passato*/
+                Arguments.of(validState, CacheState.WRITTEN, ConsumerType.VALID, validConsumer, null),
+
+                /*test t2; test passato*/
+                Arguments.of(validState, CacheState.WRITTEN, ConsumerType.INVALID, null, Exception.class),
+
+                /*test t3; test passato*/
+                Arguments.of(validState, CacheState.WRITTEN, ConsumerType.NULL, null, Exception.class),
+
+                /*test t4; test passato */
+                Arguments.of(validState, CacheState.EMPTY, ConsumerType.VALID, null, null),
+
+                /*test t5; test passato*/
+                Arguments.of(validState, CacheState.WRITTEN_WITH_DELETED_LEDGER, ConsumerType.VALID, validConsumer, null)
         );
     }
 
@@ -93,6 +101,21 @@ class WriteCacheForEachTest {
             throw new RuntimeException(constructionException);
         }
 
+        // Mappa il tipo di consumer al vero consumer
+        switch (consumerType) {
+            case INVALID:
+                consumer = invalidConsumer(); // da Utils
+                break;
+            case NULL:
+                consumer = null;
+                break;
+            case VALID:
+                if (consumer == null) {
+                    consumer = (ledgerId, entryId, entryBuf) -> { /* no-op */ };
+                }
+                break;
+        }
+
         switch (cacheState) {
             case WRITTEN:
                 ByteBuf entry = lenFullByteBuf(16);
@@ -116,7 +139,8 @@ class WriteCacheForEachTest {
 
         if (expectedException != null) {
             WriteCache finalWriteCache = writeCache;
-            Exception ex = Assertions.assertThrows(expectedException, () -> finalWriteCache.forEach(consumer));
+            WriteCache.EntryConsumer finalConsumer1 = consumer;
+            Exception ex = Assertions.assertThrows(expectedException, () -> finalWriteCache.forEach(finalConsumer1));
             System.out.println("Expected exception for consumer " + consumerType + " on cache state " + cacheState + ": " + ex);
             return;
         }
@@ -150,10 +174,10 @@ class WriteCacheForEachTest {
 
         } else {
             WriteCache finalWriteCache1 = writeCache;
-            Assertions.assertDoesNotThrow(() -> finalWriteCache1.forEach(consumer));
+            WriteCache.EntryConsumer finalConsumer = consumer;
+            Assertions.assertDoesNotThrow(() -> finalWriteCache1.forEach(finalConsumer));
         }
     }
-
 
     private static class WriteCacheState {
         final ByteBufAllocator allocator;
