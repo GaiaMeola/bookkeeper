@@ -3,7 +3,6 @@ package manualtest;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import org.apache.bookkeeper.bookie.storage.ldb.WriteCache;
-import org.apache.bookkeeper.util.collections.ConcurrentLongLongPairHashMap;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.Timeout;
@@ -11,92 +10,99 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import java.lang.reflect.Field;
 import java.util.stream.Stream;
 
-import static customutils.Utils.*;  // Assume lenFullByteBuf(), emptyByteBuf() etc.
+import static customutils.Utils.*;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class WriteCacheGetTest {
 
+    private enum CacheContentState {
+        WRITTEN, NON_WRITTEN
+    }
+
     private static Stream<Arguments> data() {
-       /* WriteCacheState invalidAllocatorState = new WriteCacheState(invalidByteBufAllocator(), 512, 128);
+        /*WriteCacheState invalidAllocatorState = new WriteCacheState(invalidByteBufAllocator(), 512, 128);
         WriteCacheState nullAllocatorState = new WriteCacheState(null, 512, 128);*/
         WriteCacheState invalidZeroCacheSize = new WriteCacheState(unpooledByteBufAllocator(), 0, 1);
-        WriteCacheState validTwoSegmentUnWritten = new WriteCacheState(unpooledByteBufAllocator(), 512, 128);
+        WriteCacheState validSegment = new WriteCacheState(unpooledByteBufAllocator(), 512, 128);
+        ByteBuf sampleEntry = lenFullByteBuf(4);
 
         return Stream.of(
 
-                /*test G1: invalid allocator; test fallito
-                Arguments.of(invalidAllocatorState, 1, 1, 0, 0, null, Exception.class)
+                /*
+                // G1: invalid allocator → eccezione; test fallito
+                Arguments.of(invalidAllocatorState, 1, 1, CacheContentState.NON_WRITTEN, null, Exception.class)
                 */
-                /*test G2: null allocator; test fallito
-                Arguments.of(nullAllocatorState, 1, 1, 0, 0, null, Exception.class)
-                 */
-
-                // test G3: maxCacheSize = 0; test passato
-                Arguments.of(invalidZeroCacheSize, 1, 1, 0, 0, null, null),
-
-                // test 1: ledgerId < 0; test passato
-                Arguments.of(validTwoSegmentUnWritten, -1, 1, 0, 0, null, Exception.class),
 
                 /*
-                // test 2: entryId < 0; test fallito
-                Arguments.of(validTwoSegmentUnWritten, 1, -1, 0, 0, null, Exception.class)
-                 */
+                // G2: null allocator → eccezione; test fallito
+                Arguments.of(nullAllocatorState, 1, 1, CacheContentState.NON_WRITTEN, null, Exception.class)
+                */
 
-                // test 3:
-                Arguments.of(validTwoSegmentUnWritten, 0, 1, 0, 1, lenFullByteBuf(1), null)
+                // G3: maxCacheSize=0 → sempre null; test passato
+                Arguments.of(invalidZeroCacheSize, 1, 1, CacheContentState.NON_WRITTEN, null, null),
+
+                // T1: ledgerId < 0 → eccezione; test passato
+                Arguments.of(validSegment, -1, 1, CacheContentState.NON_WRITTEN, null, Exception.class),
+
+                // T2: ledgerId = 0 → null; test passato
+                Arguments.of(validSegment, 0, 1, CacheContentState.NON_WRITTEN, null, null),
+
+                // T3: ledgerId > 0 → null; test passato
+                Arguments.of(validSegment, 1, 1, CacheContentState.NON_WRITTEN, null, null),
+
+                /*
+                // T4: entryId < 0 → eccezione; test fallito
+                Arguments.of(validSegment, 1, -1, CacheContentState.NON_WRITTEN, null, Exception.class)
+                */
+
+                // T5: entryId = 0 → null; test passato
+                Arguments.of(validSegment, 1, 0, CacheContentState.NON_WRITTEN, null, null),
+
+                // T6: entryId > 0 → null; test passato
+                Arguments.of(validSegment, 1, 1, CacheContentState.NON_WRITTEN, null, null),
 
 
+                // NEW 1: WRITTEN – entry presente (match); test passato
+                Arguments.of(validSegment, 10, 20, CacheContentState.WRITTEN, sampleEntry, null),
+
+                // NEW 2: WRITTEN – entry NON corrispondente (cache contiene un’altra entry); test passato
+                Arguments.of(validSegment, 10, 21, CacheContentState.WRITTEN, null, null)
         );
     }
 
     @ParameterizedTest
     @MethodSource("data")
     @Timeout(value = 5, threadMode = Timeout.ThreadMode.SEPARATE_THREAD)
-    void get(WriteCacheState s, long ledgerId, long entryId, long offset, int size,
-             ByteBuf expectedEntry, Class<? extends Exception> expectedException) throws Exception {
+    void get(WriteCacheState s,
+             long ledgerId,
+             long entryId,
+             CacheContentState cacheState,
+             ByteBuf expectedEntry,
+             Class<? extends Exception> expectedException) {
 
         WriteCache wc = new WriteCache(s.allocator, s.maxCacheSize, s.maxSegmentSize);
         Assertions.assertNotNull(wc);
 
-        // Inserisco dati nella index e nei segmenti, se serve
-        if (size > 0) {
-            Field indexField = WriteCache.class.getDeclaredField("index");
-            indexField.setAccessible(true);
-            ConcurrentLongLongPairHashMap index = (ConcurrentLongLongPairHashMap) indexField.get(wc);
-
-            Field cacheSegmentsField = WriteCache.class.getDeclaredField("cacheSegments");
-            cacheSegmentsField.setAccessible(true);
-            ByteBuf[] cacheSegments = (ByteBuf[]) cacheSegmentsField.get(wc);
-
-            Field segmentOffsetBitsField = WriteCache.class.getDeclaredField("segmentOffsetBits");
-            segmentOffsetBitsField.setAccessible(true);
-            long segmentOffsetBitsLong = segmentOffsetBitsField.getLong(wc);
-            int segmentOffsetBits = (int) segmentOffsetBitsLong;  // cast esplicito
-
-            Field segmentOffsetMaskField = WriteCache.class.getDeclaredField("segmentOffsetMask");
-            segmentOffsetMaskField.setAccessible(true);
-            long segmentOffsetMaskLong = segmentOffsetMaskField.getLong(wc);
-            int segmentOffsetMask = (int) segmentOffsetMaskLong;  // cast esplicito
-
-            int segmentIdx = (int) (offset >>> segmentOffsetBits);
-            int localOffset = (int) (offset & segmentOffsetMask);
-
-            if (cacheSegments[segmentIdx] != null) {
-                byte[] data = new byte[size];
-                cacheSegments[segmentIdx].setBytes(localOffset, data);
+        // Se lo stato è WRITTEN, inseriamo direttamente l'entry
+        if (cacheState == CacheContentState.WRITTEN && expectedException == null) {
+            if (expectedEntry != null) {
+                // Caso WRITTEN con match: scriviamo esattamente la entry cercata
+                wc.put(ledgerId, entryId, expectedEntry.copy());
+            } else {
+                // Caso WRITTEN con mismatch: scriviamo un'altra entry (ledgerId o entryId diverso)
+                wc.put(ledgerId, entryId + 1, lenFullByteBuf(4));
             }
-
-            index.put(ledgerId, entryId, offset, size);
         }
 
+        // Controllo eccezione attesa
         if (expectedException != null) {
             Assertions.assertThrows(expectedException, () -> wc.get(ledgerId, entryId));
             return;
         }
 
+        // Recupero e confronto
         ByteBuf result = wc.get(ledgerId, entryId);
 
         if (expectedEntry == null) {
@@ -106,7 +112,8 @@ class WriteCacheGetTest {
             Assertions.assertEquals(expectedEntry.readableBytes(), result.readableBytes(), "Size mismatch");
 
             for (int i = 0; i < expectedEntry.readableBytes(); i++) {
-                Assertions.assertEquals(expectedEntry.getByte(i), result.getByte(i), "Byte mismatch at index " + i);
+                Assertions.assertEquals(expectedEntry.getByte(i), result.getByte(i),
+                        "Byte mismatch at index " + i);
             }
         }
     }
