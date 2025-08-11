@@ -37,10 +37,6 @@ class WriteCacheForEachTest {
             // consumer che fa nulla, simula il caso normale
         };
 
-        WriteCache.EntryConsumer exceptionConsumer = (ledgerId, entryId, entry) -> {
-            throw new IOException("Test exception from consumer");
-        };
-
         WriteCacheState validState = new WriteCacheState(unpooledByteBufAllocator(), 512, 128);
         WriteCacheState zeroCacheSizeState = new WriteCacheState(unpooledByteBufAllocator(), 0, 1);
        /* WriteCacheState nullAllocatorState = new WriteCacheState(null, 512, 128); */
@@ -69,7 +65,7 @@ class WriteCacheForEachTest {
                 /*test t4; test passato */
                 Arguments.of(validState, CacheState.EMPTY, ConsumerType.VALID, null, null),
 
-                /*test t5; test passato*/
+                /*test t5 test passato*/
                 Arguments.of(validState, CacheState.WRITTEN_WITH_DELETED_LEDGER, ConsumerType.VALID, validConsumer, null)
         );
     }
@@ -148,9 +144,7 @@ class WriteCacheForEachTest {
         if (consumerType == ConsumerType.VALID) {
             List<String> consumedEntries = new ArrayList<>();
 
-            WriteCache.EntryConsumer trackingConsumer = (ledgerId, entryId, entryBuf) -> {
-                consumedEntries.add(ledgerId + ":" + entryId);
-            };
+            WriteCache.EntryConsumer trackingConsumer = (ledgerId, entryId, entryBuf) -> consumedEntries.add(ledgerId + ":" + entryId);
 
             writeCache.forEach(trackingConsumer);
 
