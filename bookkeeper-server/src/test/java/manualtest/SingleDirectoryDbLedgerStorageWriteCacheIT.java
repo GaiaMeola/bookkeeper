@@ -2,9 +2,9 @@ package manualtest;
 
 import customutils.TestBookieImpl;
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.Unpooled;
-import org.apache.bookkeeper.bookie.*;
+import org.apache.bookkeeper.bookie.BookieImpl;
+import org.apache.bookkeeper.bookie.LedgerDirsManager;
 import org.apache.bookkeeper.bookie.storage.EntryLogger;
 import org.apache.bookkeeper.bookie.storage.ldb.DbLedgerStorage;
 import org.apache.bookkeeper.bookie.storage.ldb.SingleDirectoryDbLedgerStorage;
@@ -58,7 +58,7 @@ public class SingleDirectoryDbLedgerStorageWriteCacheIT {
                                                         LedgerDirsManager indexDirsManager,
                                                         EntryLogger entryLogger,
                                                         StatsLogger statsLogger,
-                                                        ByteBufAllocator allocator,
+                                                        io.netty.buffer.ByteBufAllocator allocator,
                                                         long writeCacheSize, long readCacheSize,
                                                         int readAheadCacheBatchSize, long readAheadCacheBatchBytesSize)
                     throws IOException {
@@ -98,6 +98,9 @@ public class SingleDirectoryDbLedgerStorageWriteCacheIT {
         conf.setLedgerStorageClass(MockedDbLedgerStorage.class.getName());
         conf.setLedgerDirNames(new String[]{tmpDir.toString()});
 
+        // IMPORTANT: forza dimensione cache bassa (MB) per rendere la rotazione deterministica
+        conf.setProperty(DbLedgerStorage.WRITE_CACHE_MAX_SIZE_MB, 1); // 1 MB
+
         // Usa il nome host per costruire il BookieId (evita IPv6 link-local con %zone)
         conf.setUseHostNameAsBookieID(true);
 
@@ -135,7 +138,6 @@ public class SingleDirectoryDbLedgerStorageWriteCacheIT {
 
         // Assertion reale sul comportamento della cache
         verify(currentWriteCache, times(1)).put(1, 2, entry);
-        //viene effettivamente invocato una sola volta
     }
 
 
@@ -158,7 +160,7 @@ public class SingleDirectoryDbLedgerStorageWriteCacheIT {
     public void testWriteCacheRotation() throws Exception {
         // Inserimento di abbastanza entry per riempire la cache
         for (int i = 0; i < 5; i++) {
-            ByteBuf entry = Unpooled.buffer(100 * 1024 + 2 * 8);
+            ByteBuf entry = Unpooled.buffer(100 * 1024 + 2 * 8); // ~100 KB
             entry.writeLong(4);
             entry.writeLong(i);
             entry.writeZero(100 * 1024);
