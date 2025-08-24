@@ -1,9 +1,9 @@
 package manualtest;
 
+import customutils.TestBookieImpl;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.Unpooled;
-import io.netty.buffer.UnpooledByteBufAllocator;
 import org.apache.bookkeeper.bookie.*;
 import org.apache.bookkeeper.bookie.storage.EntryLogger;
 import org.apache.bookkeeper.bookie.storage.ldb.DbLedgerStorage;
@@ -11,7 +11,6 @@ import org.apache.bookkeeper.bookie.storage.ldb.SingleDirectoryDbLedgerStorage;
 import org.apache.bookkeeper.bookie.storage.ldb.WriteCache;
 import org.apache.bookkeeper.conf.ServerConfiguration;
 import org.apache.bookkeeper.meta.LedgerManager;
-import org.apache.bookkeeper.stats.NullStatsLogger;
 import org.apache.bookkeeper.stats.StatsLogger;
 import org.junit.After;
 import org.junit.Before;
@@ -99,22 +98,14 @@ public class SingleDirectoryDbLedgerStorageWriteCacheIT {
         conf.setLedgerStorageClass(MockedDbLedgerStorage.class.getName());
         conf.setLedgerDirNames(new String[]{tmpDir.toString()});
 
-        // Uso costruttore completo di BookieImpl con valori null/placeholder per test
-        Bookie bookie = new BookieImpl(
-                conf,
-                null,                       // RegistrationManager
-                null,                       // LedgerStorage
-                null,                       // DiskChecker
-                null,                       // LedgerDirsManager
-                null,                       // IndexDirsManager
-                NullStatsLogger.INSTANCE,   // StatsLogger
-                UnpooledByteBufAllocator.DEFAULT, // ByteBufAllocator
-                () -> null                  // Supplier<BookieServiceInfo>
-        );
+        // Usa il nome host per costruire il BookieId (evita IPv6 link-local con %zone)
+        conf.setUseHostNameAsBookieID(true);
+
+        // Crea TestBookieImpl (usando il builder di test che inizializza le dipendenze)
+        TestBookieImpl bookie = new TestBookieImpl(conf);
 
         storage = (DbLedgerStorage) bookie.getLedgerStorage();
 
-        // Assertion minima per soddisfare Sonar
         assert storage != null;
     }
 
@@ -137,12 +128,14 @@ public class SingleDirectoryDbLedgerStorageWriteCacheIT {
     public void testAddEntry_stubbed() throws Exception {
         ByteBuf entry = customByteBuf(2);
 
+        // Stub: la cache risponde sempre true
         doReturn(true).when(currentWriteCache).put(anyLong(), anyLong(), any());
 
         storage.addEntry(entry);
 
         // Assertion reale sul comportamento della cache
         verify(currentWriteCache, times(1)).put(1, 2, entry);
+        //viene effettivamente invocato una sola volta
     }
 
 
