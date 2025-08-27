@@ -22,6 +22,8 @@ import static customutils.Utils.*;
  * Unit testing for {@link BufferedChannel}. class <br>
  * Tested method: {@link BufferedChannel#read(ByteBuf, long, int)}
  */
+
+@SuppressWarnings("java:S2637")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class BufferedChannelReadTest {
 
@@ -146,8 +148,10 @@ class BufferedChannelReadTest {
         }
 
         if (expectedException != null) {
+            // ora chiama il metodo che dovrebbe lanciare l'eccezione attesa
             Assertions.assertThrows(expectedException, () -> bc.read(dest, pos, length));
         }
+
         else {
             try {
                 assert dest != null;
