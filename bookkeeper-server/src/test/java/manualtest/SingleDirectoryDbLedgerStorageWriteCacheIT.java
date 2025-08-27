@@ -26,9 +26,9 @@ import static org.mockito.Mockito.*;
 
 public class SingleDirectoryDbLedgerStorageWriteCacheIT {
 
-    private DbLedgerStorage storage;
+    private DbLedgerStorage storage; //istanza di DbLedgerStorage
     private File tmpDir;
-    public static WriteCache currentWriteCache;
+    public static WriteCache currentWriteCache; //spy di Mockito
 
     // =========================
     // Ledger "mocked" con WriteCache spy
@@ -66,7 +66,7 @@ public class SingleDirectoryDbLedgerStorageWriteCacheIT {
                         statsLogger, allocator, writeCacheSize, readCacheSize, readAheadCacheBatchSize,
                         readAheadCacheBatchBytesSize);
 
-                // Spy della WriteCache per verificare le interazioni
+                // Spy della WriteCache per verificare le interazioni, mentre SingleDirectoryDbLedgerStorage reale
                 currentWriteCache = spy(this.writeCache);
                 this.writeCache = currentWriteCache;
             }
@@ -74,6 +74,7 @@ public class SingleDirectoryDbLedgerStorageWriteCacheIT {
     }
 
     private ByteBuf customByteBuf(long entryId) {
+        //metodo helper, per costruire un'entry
         ByteBuf entry = Unpooled.buffer(512 + 2 * 8);
         entry.writeLong(1);
         entry.writeLong(entryId);
@@ -89,7 +90,7 @@ public class SingleDirectoryDbLedgerStorageWriteCacheIT {
         }
         if (!tmpDir.mkdir()) {
             throw new IOException("Unable to create temp directory " + tmpDir);
-        }
+        } //directory temporanea per simulare il file system di un Bookie
 
         File curDir = BookieImpl.getCurrentDirectory(tmpDir);
         BookieImpl.checkDirectoryStructure(curDir);
@@ -131,7 +132,7 @@ public class SingleDirectoryDbLedgerStorageWriteCacheIT {
     public void testAddEntry_stubbed() throws Exception {
         ByteBuf entry = customByteBuf(2);
 
-        // Stub: la cache risponde sempre true
+        // Stub: la cache risponde sempre true; in questo modo non eseguo il metodo reale
         doReturn(true).when(currentWriteCache).put(anyLong(), anyLong(), any());
 
         storage.addEntry(entry);
