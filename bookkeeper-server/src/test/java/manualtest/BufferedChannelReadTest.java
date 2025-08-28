@@ -2,6 +2,7 @@ package manualtest;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
+import io.netty.buffer.Unpooled;
 import org.apache.bookkeeper.bookie.BufferedChannel;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -121,7 +122,7 @@ class BufferedChannelReadTest {
                     // //test T19; test passato
                     Arguments.of(valid, BC_BB_CONTENT, emptyByteBuf(), BC_FC_CONTENT.length()+BC_BB_CONTENT.length(), 1, Exception.class, -1),
 
-                    //test J_R1; test
+                    //test J_R1; test passato
                     Arguments.of(wbNullWriteState, BC_BB_CONTENT, emptyByteBuf(),  BC_FC_CONTENT.length() + BC_BB_CONTENT.length() - 1, 1, null, 0)
             );
         } catch (IOException e) {
@@ -198,6 +199,38 @@ class BufferedChannelReadTest {
                 throw new RuntimeException(e);
             }
         }
+    }
+
+    @Test
+    void testJR2_ReadBufferConditionCoverage() throws IOException {
+        // Prepariamo il BufferedChannel normale
+        BufferedChannel bc = new BufferedChannel(
+                unpooledByteBufAllocator(),
+                validFileChannel(),
+                100, // writeCapacity
+                100, // readCapacity
+                1    // unpersistedBytesBound
+        );
+
+        // Clear del readBuffer per forzare la lettura da file
+        clearReadBuffer(bc);
+
+        // Primo read: legge i primi 5 byte
+        ByteBuf dest1 = Unpooled.buffer(5); // buffer almeno grande quanto il length
+        int read1 = bc.read(dest1, 0, 5);
+        Assertions.assertEquals(5, read1);
+
+        // Il readBufferStartPosition ora è stato aggiornato a pos=0
+        // Secondo read: leggiamo in una posizione più piccola per far entrare il ramo readBufferStartPosition > pos
+        ByteBuf dest2 = Unpooled.buffer(5); // di nuovo, almeno grande quanto length
+        int read2 = bc.read(dest2, 0, 5);
+
+        // Verifica solo che ritorni la dimensione letta corretta
+        Assertions.assertEquals(5, read2);
+
+        String expectedContent = (BC_FC_CONTENT + BC_BB_CONTENT).substring(0, 5);
+        String actualContent = dest2.toString(StandardCharsets.UTF_8);
+        Assertions.assertEquals(expectedContent, actualContent);
     }
 
     @AfterEach
