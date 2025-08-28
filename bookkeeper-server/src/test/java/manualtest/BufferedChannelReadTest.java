@@ -128,7 +128,7 @@ class BufferedChannelReadTest {
     @MethodSource("data")
     @Timeout(value = 5, threadMode = Timeout.ThreadMode.SEPARATE_THREAD)
     void read(BufferedChannelState state, String wbContent, ByteBuf dest, long pos,
-              int length, Class<Exception> expectedException, int expectedReturn) {
+              int length, Class<? extends Throwable> expectedException, int expectedReturn) {
 
         if(expectedException != null && expectedReturn > 0)
             throw new RuntimeException("Invalid test configuration");
@@ -148,8 +148,13 @@ class BufferedChannelReadTest {
         }
 
         if (expectedException != null) {
-            // ora chiama il metodo che dovrebbe lanciare l'eccezione attesa
-            Assertions.assertThrows(expectedException, () -> bc.read(dest, pos, length));
+            try {
+                bc.read(dest, pos, length);
+                Assertions.fail("Expected exception was not thrown");
+            } catch (Throwable t) {
+                Assertions.assertTrue(expectedException.isInstance(t),
+                        () -> "Expected " + expectedException.getName() + " but got " + t.getClass().getName());
+            }
         }
 
         else {

@@ -932,11 +932,11 @@
       <artifactId>hamcrest-all</artifactId>
       <scope>test</scope>
     </dependency>
-    <dependency>
+    <!-- <dependency>
       <groupId>org.mockito</groupId>
-      <artifactId>mockito-inline</artifactId>
+      <artifactId>mockito-core</artifactId>
       <scope>test</scope>
-    </dependency>
+    </dependency> -->
   </dependencies>
 
   <build>
@@ -1450,6 +1450,7 @@
               </configuration>
             </plugin>
               <!-- addition by GAIA to run EVOSUITE -->
+              <!--
               <plugin>
                   <groupId>org.evosuite.plugins</groupId>
                   <artifactId>evosuite-maven-plugin</artifactId>
@@ -1462,7 +1463,7 @@
                       </excludedClasses>
                   </configuration>
               </plugin>
-              <!-- addition by GAIA to run EVOSUITE -->
+              addition by GAIA to run EVOSUITE -->
           </plugins>
         </pluginManagement>
       </build>
@@ -1536,6 +1537,26 @@
       </build>
     </profile>
     <!-- addition by Gaia to run JACOCO -->
+          <profile>
+              <id>manual-tests</id>
+              <activation>
+                  <activeByDefault>false</activeByDefault>
+              </activation>
+              <build>
+                  <plugins>
+                      <plugin>
+                          <groupId>org.evosuite.plugins</groupId>
+                          <artifactId>evosuite-maven-plugin</artifactId>
+                          <executions>
+                              <execution>
+                                  <id>default-cli</id>
+                                  <phase>none</phase> <!-- disabilita EvoSuite -->
+                              </execution>
+                          </executions>
+                      </plugin>
+                  </plugins>
+              </build>
+          </profile>
   </profiles>
     <!-- addition by GAIA to run EVOSUITE
     <pluginRepositories>
