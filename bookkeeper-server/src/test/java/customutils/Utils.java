@@ -4,6 +4,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.Unpooled;
 import io.netty.buffer.UnpooledByteBufAllocator;
+import org.apache.bookkeeper.bookie.BufferedChannel;
 import org.apache.bookkeeper.bookie.storage.ldb.WriteCache;
 
 import java.io.IOException;
@@ -165,5 +166,25 @@ public class Utils {
         return (ledgerId, entryId, entry) -> {
             throw new RuntimeException("forced runtime exception from invalid consumer");
         };
+    }
+
+    /**
+     * Crea un BufferedChannel con writeBuffer nullo.
+     * Serve per testare il branch che gestisce writeBuffer == null.
+     */
+    public static BufferedChannel bufferedChannelWithNullWriteBuffer(ByteBufAllocator allocator,
+                                                                     FileChannel fc,int writeCapacity, int readCapacity, long unpersistedBytesBound) {
+        try {
+            BufferedChannel bc = new BufferedChannel(allocator, fc, writeCapacity, readCapacity, unpersistedBytesBound);
+
+            // impostiamo writeBuffer a null tramite reflection
+            Field writeBufferField = bc.getClass().getDeclaredField("writeBuffer");
+            writeBufferField.setAccessible(true);
+            writeBufferField.set(bc, null);
+
+            return bc;
+        } catch (Exception e) {
+            throw new RuntimeException("Error creating BufferedChannel with null writeBuffer", e);
+        }
     }
 }

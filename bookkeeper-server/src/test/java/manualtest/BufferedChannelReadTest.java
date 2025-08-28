@@ -23,7 +23,6 @@ import static customutils.Utils.*;
  * Tested method: {@link BufferedChannel#read(ByteBuf, long, int)}
  */
 
-@SuppressWarnings("java:S2637")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class BufferedChannelReadTest {
 
@@ -33,10 +32,13 @@ class BufferedChannelReadTest {
             /*
             BufferedChannelState t2Invalid = new BufferedChannelState(invalidByteBufAllocator(),  validFileChannel(),100, 100, 1);
              */
-            BufferedChannelState t7Invalid = new BufferedChannelState(unpooledByteBufAllocator(), invalidPositionFileChannel(), 100, 100, 1);
-            BufferedChannelState t5Invalid = new BufferedChannelState(unpooledByteBufAllocator(), writeOnlyFileChannel(),       100, 100, 1);
-            BufferedChannelState t13Invalid = new BufferedChannelState(invalidByteBufAllocator(),  validFileChannel(),           100,   0, 1);
-            BufferedChannelState valid     = new BufferedChannelState(unpooledByteBufAllocator(), validFileChannel(), 100, 100, 1);
+            BufferedChannelState t7Invalid = new BufferedChannelState(unpooledByteBufAllocator(), invalidPositionFileChannel(), 100, 100, 1, false);
+            BufferedChannelState t5Invalid = new BufferedChannelState(unpooledByteBufAllocator(), writeOnlyFileChannel(),       100, 100, 1, false);
+            BufferedChannelState t13Invalid = new BufferedChannelState(invalidByteBufAllocator(),  validFileChannel(),           100,   0, 1, false);
+            BufferedChannelState valid     = new BufferedChannelState(unpooledByteBufAllocator(), validFileChannel(), 100, 100, 1, false);
+            //aggiunto a seguito dell'utilizzo di Jacoco
+            BufferedChannelState wbNullWriteState = new BufferedChannelState(unpooledByteBufAllocator(), validFileChannel(), 100, 100, 1, true);
+
 
             // fix test T2 dinamicamente
             int length = BC_FC_CONTENT.length() / 2;
@@ -117,7 +119,10 @@ class BufferedChannelReadTest {
                     Arguments.of(valid, BC_BB_CONTENT, emptyByteBuf(), 0, BC_FC_CONTENT.length()+BC_BB_CONTENT.length()+1, Exception.class, -1),
 
                     // //test T19; test passato
-                    Arguments.of(valid, BC_BB_CONTENT, emptyByteBuf(), BC_FC_CONTENT.length()+BC_BB_CONTENT.length(), 1, Exception.class, -1)
+                    Arguments.of(valid, BC_BB_CONTENT, emptyByteBuf(), BC_FC_CONTENT.length()+BC_BB_CONTENT.length(), 1, Exception.class, -1),
+
+                    //test J_R1; test
+                    Arguments.of(wbNullWriteState, BC_BB_CONTENT, emptyByteBuf(),  BC_FC_CONTENT.length() + BC_BB_CONTENT.length() - 1, 1, null, 0)
             );
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -137,15 +142,30 @@ class BufferedChannelReadTest {
         int destStartingWritePos = dest != null ? dest.writerIndex() : 0;
 
         try {
-            bc = new BufferedChannel(state.allocator, state.fc, state.writeCapacity, state.readCapacity, state.unpersistedBytesBound);
+            // Se il test richiede un writeBuffer nullo, usiamo il metodo speciale di Utils
+            if (state.useNullWriteBuffer) {
+                bc = bufferedChannelWithNullWriteBuffer(
+                        state.allocator, state.fc, state.writeCapacity, state.readCapacity, state.unpersistedBytesBound
+                );
+            } else {
+                bc = new BufferedChannel(
+                        state.allocator, state.fc, state.writeCapacity, state.readCapacity, state.unpersistedBytesBound
+                );
+            }
+
             Assertions.assertNotNull(bc);
-            if(wbContent != null)
+
+            // Se wbContent è valorizzato, scriviamo sul writeBuffer
+            if (wbContent != null && bc.getWriteBuffer() != null) {
                 bc.getWriteBuffer().writeBytes(wbContent.getBytes(StandardCharsets.UTF_8));
+            }
 
             clearReadBuffer(bc); // invalida il readBuffer per forzare lettura da FileChannel
+
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+
 
         if (expectedException != null) {
             try {
@@ -193,14 +213,16 @@ class BufferedChannelReadTest {
         private final int writeCapacity;
         private final int readCapacity;
         private final long unpersistedBytesBound;
+        private final boolean useNullWriteBuffer;
 
         BufferedChannelState(ByteBufAllocator allocator, FileChannel fc, int writeCapacity, int readCapacity,
-                             long unpersistedBytesBound) {
+                             long unpersistedBytesBound, boolean useNullWriteBuffer) {
             this.allocator = allocator;
             this.fc = fc;
             this.writeCapacity = writeCapacity;
             this.readCapacity = readCapacity;
             this.unpersistedBytesBound = unpersistedBytesBound;
+            this.useNullWriteBuffer = useNullWriteBuffer;
         }
     }
 }
