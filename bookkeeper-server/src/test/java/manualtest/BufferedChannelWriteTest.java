@@ -224,43 +224,6 @@ class BufferedChannelWriteTest {
                 "Il writeBuffer deve contenere esattamente 1 byte rimanente");
     }
 
-//    @Test
-//    void testJW2_BufferPartialFlushWithUnpersistedBytesZero() throws IOException {
-//        // BufferedChannel con writeCapacity = metà + 1 dei byte da scrivere
-//        String contentToWrite = BC_BB_CONTENT;
-//        int writeCapacity = contentToWrite.length() / 2 + 1;
-//
-//        BufferedChannel bc = new BufferedChannel(
-//                unpooledByteBufAllocator(),
-//                validFileChannel(),
-//                writeCapacity,
-//                100,
-//                0 // unpersistedBytesBound = 0, quindi doRegularFlushes = false
-//        );
-//
-//        ByteBuf src = Unpooled.copiedBuffer(contentToWrite.getBytes(StandardCharsets.UTF_8));
-//
-//        // Scrittura
-//        bc.write(src);
-//
-//        // Verifica: parte iniziale scritta, parte rimanente no
-//        ByteBuffer fcContent = ByteBuffer.allocate(contentToWrite.length());
-//        bc.getFileChannel().read(fcContent, 0);
-//        fcContent.flip();
-//        String writtenFcContent = new String(fcContent.array(), 0, fcContent.limit(), StandardCharsets.UTF_8);
-//
-//        Assertions.assertEquals(contentToWrite.substring(0, writeCapacity),
-//                writtenFcContent,
-//                "Solo la porzione [0, writeCapacity] deve essere scritta sul file channel");
-//
-//        // Verifica che il resto rimanga nel buffer
-//        ByteBuf writeBuffer = bc.getWriteBuffer();
-//        String bufferContent = writeBuffer.toString(StandardCharsets.UTF_8);
-//        Assertions.assertEquals(contentToWrite.substring(writeCapacity), bufferContent,
-//                "Il resto dei byte deve rimanere nel buffer di scrittura");
-//    }
-
-
     @AfterEach
     public void deleteTestFile() throws IOException {
         Path path = Paths.get(BC_TEST_FILE);

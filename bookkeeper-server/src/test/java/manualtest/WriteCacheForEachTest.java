@@ -2,8 +2,10 @@ package manualtest;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
+import io.netty.buffer.Unpooled;
 import org.apache.bookkeeper.bookie.storage.ldb.WriteCache;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -171,6 +173,27 @@ class WriteCacheForEachTest {
             WriteCache.EntryConsumer finalConsumer = consumer;
             Assertions.assertDoesNotThrow(() -> finalWriteCache1.forEach(finalConsumer));
         }
+    }
+
+    @Test
+    void testForEach_F1_SortedEntriesAlreadyAllocated() throws Exception {
+        // Crea WriteCache con dimensioni sufficienti
+        ByteBufAllocator allocator = Unpooled.buffer().alloc();
+        WriteCache writeCache = new WriteCache(allocator, 512, 128);
+
+        // Inserisci una entry nella cache
+        ByteBuf entry = Unpooled.wrappedBuffer("test-entry".getBytes());
+        writeCache.put(1L, 1L, entry);
+
+        // Prepariamo un consumer no-op
+        WriteCache.EntryConsumer consumer = (ledgerId, entryId, buf) -> { /* no-op */ };
+
+        // Chiamiamo forEach una prima volta per allocare sortedEntries internamente
+        writeCache.forEach(consumer);
+
+        // Chiamiamo forEach una seconda volta: sortedEntries è già allocato e sufficiente
+        Assertions.assertDoesNotThrow(() -> writeCache.forEach(consumer),
+                "Il metodo forEach dovrebbe gestire correttamente il caso in cui sortedEntries è già allocato e dimensione adeguata");
     }
 
     private static class WriteCacheState {
