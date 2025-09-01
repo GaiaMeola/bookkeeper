@@ -175,6 +175,7 @@ class WriteCacheForEachTest {
         }
     }
 
+    //introdotti a seguito dei miglioramenti per Jacoco
     @Test
     void testForEach_F2_SortedEntriesSufficientSize() throws Exception {
         // Crea WriteCache con dimensioni sufficienti
@@ -198,6 +199,7 @@ class WriteCacheForEachTest {
                 "Il metodo forEach dovrebbe usare l'array sortedEntries esistente senza riallocarlo");
     }
 
+    //introdotti a seguito dei miglioramenti per Jacoco
     @Test
     void testForEach_FT_SortedEntriesTooSmall() throws Exception {
         ByteBufAllocator allocator = Unpooled.buffer().alloc();
