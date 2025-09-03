@@ -1046,21 +1046,6 @@
             <!-- addition by GAIA to run EVOSUITE-->
         </configuration>
       </plugin>
-        <!-- addition by GAIA to run JACOCO
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-surefire-plugin</artifactId>
-        <configuration>
-          <argLine>-Xmx2G -Dsun.net.inetaddr.ttl=1 -Dsun.net.inetaddr.negative.ttl=1 -Djava.net.preferIPv4Stack=true -Dio.netty.leakDetection.level=paranoid ${test.additional.args}</argLine>
-          <redirectTestOutputToFile>${redirectTestOutputToFile}</redirectTestOutputToFile>
-          <forkCount>${forkCount.variable}</forkCount>
-          <reuseForks>false</reuseForks>
-          <trimStackTrace>false</trimStackTrace>
-          <forkedProcessTimeoutInSeconds>1800</forkedProcessTimeoutInSeconds>
-          <rerunFailingTestsCount>${testRetryCount}</rerunFailingTestsCount>
-        </configuration>
-      </plugin>
-        addition by GAIA to run JACOCO -->
         <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-failsafe-plugin</artifactId>
@@ -1343,44 +1328,10 @@
     <profile>
       <id>dev</id>
       <build>
-        <plugins>
-            <!-- addition by GAIA to run JACOCO
-            <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-surefire-plugin</artifactId>
-            <configuration>
-              <argLine>-Xmx2G -Dsun.net.inetaddr.ttl=1 -Dsun.net.inetaddr.negative.ttl=1 -Djava.net.preferIPv4Stack=true</argLine>
-              <redirectTestOutputToFile>false</redirectTestOutputToFile>
-              <forkCount>${forkCount.variable}</forkCount>
-              <reuseForks>false</reuseForks>
-              <forkedProcessTimeoutInSeconds>1800</forkedProcessTimeoutInSeconds>
-              <trimStackTrace>false</trimStackTrace>
-              <rerunFailingTestsCount>0</rerunFailingTestsCount>
-            </configuration>
-          </plugin> addition by GAIA to run JACOCO -->
-        </plugins>
       </build>
     </profile>
     <profile>
       <id>dev-debug</id>
-      <build>
-        <plugins>
-            <!-- addition by GAIA to run JACOCO
-            <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-surefire-plugin</artifactId>
-            <configuration>
-              <argLine>-Xmx2G -Dsun.net.inetaddr.ttl=1 -Dsun.net.inetaddr.negative.ttl=1 -Djava.net.preferIPv4Stack=true -Dio.netty.leakDetection.level=paranoid -Dbookkeeper.log.root.level=INFO -Dbookkeeper.log.root.appender=CONSOLE</argLine>
-              <redirectTestOutputToFile>false</redirectTestOutputToFile>
-              <forkCount>${forkCount.variable}</forkCount>
-              <reuseForks>false</reuseForks>
-              <forkedProcessTimeoutInSeconds>1800</forkedProcessTimeoutInSeconds>
-              <trimStackTrace>false</trimStackTrace>
-            </configuration>
-          </plugin>
-            addition by GAIA to run JACOCO -->
-        </plugins>
-      </build>
     </profile>
     <profile>
       <id>aarch64-linux-nar-aol</id>

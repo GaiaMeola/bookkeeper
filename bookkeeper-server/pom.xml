@@ -371,10 +371,19 @@
       <plugin>
         <groupId>org.pitest</groupId>
         <artifactId>pitest-maven</artifactId>
-        <version>1.15.2</version>
+        <version>1.16.0</version>
+        <dependencies>
+          <dependency>
+
+            <groupId>org.pitest</groupId>
+            <artifactId>pitest-junit5-plugin</artifactId>
+            <version>1.2.1</version>
+          </dependency>
+        </dependencies>
         <configuration>
           <targetClasses>
             <param>org.apache.bookkeeper.bookie.BufferedChannel</param>
+            <param>org.apache.bookkeeper.bookie.WriteCache</param>
           </targetClasses>
           <outputFormats>
             <param>HTML</param>
@@ -382,9 +391,19 @@
           <mutators>
             <mutator>ALL</mutator>
           </mutators>
+          <threads>2</threads>
+          <verbose>true</verbose>
+          <timeoutFactor>2</timeoutFactor>
+          <timeoutConstant>120000</timeoutConstant>
+          <avoidCallsTo>java.lang.System</avoidCallsTo>
+          <targetTests>
+            <param>manualtest.*</param>
+          </targetTests>
         </configuration>
       </plugin>
       <!-- addition by GAIA to run PIT -->
+
+
       <!-- addition by GAIA to run EVOSUITE -->
       <!-- <plugin>
         <groupId>org.evosuite.plugins</groupId>
