@@ -20,6 +20,8 @@ import java.nio.file.StandardOpenOption;
 import java.util.stream.Stream;
 
 import static customutils.Utils.*;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.Mockito.*;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class BufferedChannelWriteTest {
@@ -50,7 +52,6 @@ class BufferedChannelWriteTest {
                     // W5 – writeCapacity = 0 → eccezione; test in errore a causa del time-out
                     Arguments.of(unpooledByteBufAllocator(), validFileChannel(), 0, 100, 1, fullByteBuf(), Exception.class)
                      */
-
 
                     // T1.1 – Scrittura nel solo buffer, no flush; test passato
                     Arguments.of(unpooledByteBufAllocator(), validFileChannel(), 100, 100, BC_BB_CONTENT.length() + 1, fullByteBuf(), null),
@@ -222,6 +223,24 @@ class BufferedChannelWriteTest {
                 "Il resto dei byte deve rimanere nel writeBuffer");
         Assertions.assertEquals(1, bc.getWriteBuffer().readableBytes(),
                 "Il writeBuffer deve contenere esattamente 1 byte rimanente");
+    }
+
+    //aggiunto dopo l'analisi di PIT'
+    @Test
+    void testForceWriteNotCalledWhenShouldForceWriteFalse() throws IOException {
+        Path path = Paths.get(BC_TEST_FILE);
+        if (Files.exists(path)) Files.delete(path);
+        Files.createFile(path);
+        FileChannel fc = FileChannel.open(path, StandardOpenOption.READ, StandardOpenOption.WRITE);
+
+        BufferedChannel bc = new BufferedChannel(unpooledByteBufAllocator(), fc, 1000, 100, 1000);
+        BufferedChannel spyBc = spy(bc);
+
+        ByteBuf src = Unpooled.copiedBuffer("abc".getBytes(StandardCharsets.UTF_8));
+        spyBc.write(src);
+
+        // Verifica che forceWrite NON sia chiamato
+        verify(spyBc, never()).forceWrite(anyBoolean());
     }
 
     @AfterEach
