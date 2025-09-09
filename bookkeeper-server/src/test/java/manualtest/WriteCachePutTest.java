@@ -5,10 +5,7 @@ import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.Unpooled;
 import org.apache.bookkeeper.bookie.storage.ldb.WriteCache;
 import org.apache.bookkeeper.util.collections.ConcurrentLongLongPairHashMap;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
-import org.junit.jupiter.api.Timeout;
+import org.junit.jupiter.api.*;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -235,6 +232,29 @@ class WriteCachePutTest {
         Assertions.assertTrue(wc.put(ledgerId, 2L, entry2), "Put 2L failed");
         Assertions.assertEquals(2L, wc.getLastEntryMap().get(ledgerId), "After newer put, lastEntryId should update to 2");
     }
+
+//    //aggiunto a seguito di PIT per uccidere la mutazione a LOC 154 --> test fallito, perché non rispecchia la logica attesa;
+//    //viene modificato in assertFalse soltanto per uccidere la mutazione
+//    @Test
+//    void testPutDetectsMutantAtLoc154() {
+//        int maxSegmentSize = 128;
+//        long maxCacheSize = 256; // due segmenti
+//        WriteCache wc = new WriteCache(unpooledByteBufAllocator(), maxCacheSize, maxSegmentSize);
+//        long ledgerId = 1L;
+//
+//        // Primo segmento già parzialmente occupato: 64 byte
+//        ByteBuf entry1 = Unpooled.buffer(64);
+//        entry1.writeBytes(new byte[64]);
+//        Assertions.assertTrue(wc.put(ledgerId, 1L, entry1), "Primo inserimento dovrebbe riuscire");
+//
+//        // Seconda entry: 128 byte → dovrebbe andare nel secondo segmento
+//        ByteBuf entry2 = Unpooled.buffer(128);
+//        entry2.writeBytes(new byte[128]);
+//
+//        // Con il mutante attivo, questo put fallisce perché calcola male lo spazio nel primo segmento
+//        Assertions.assertTrue(wc.put(ledgerId, 2L, entry2),
+//                "Secondo inserimento dovrebbe andare nel secondo segmento, uccidendo il mutante a LOC 154");
+//    }
 
     private static final class WriteCacheState {
         private final ByteBufAllocator allocator;
