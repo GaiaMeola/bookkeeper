@@ -31,6 +31,26 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-maven
 
+      - name: Add JitPack repository for Randoop
+        run: |
+          mkdir -p ~/.m2
+          echo '<settings xmlns="http://maven.apache.org/SETTINGS/1.0.0">
+                  <profiles>
+                    <profile>
+                      <id>add-jitpack</id>
+                      <repositories>
+                        <repository>
+                          <id>jitpack.io</id>
+                          <url>https://jitpack.io</url>
+                        </repository>
+                      </repositories>
+                    </profile>
+                  </profiles>
+                  <activeProfiles>
+                    <activeProfile>add-jitpack</activeProfile>
+                  </activeProfiles>
+                </settings>' > ~/.m2/settings.xml
+
       - name: Build all modules (install SNAPSHOTs)
         run: mvn -B clean install -DskipTests
 
