@@ -254,11 +254,13 @@
       <scope>test</scope>
     </dependency>
     <!-- addition by GAIA to run EVOSUITE -->
+    <!--
     <dependency>
       <groupId>com.github.randoop</groupId>
       <artifactId>randoop</artifactId>
       <version>4.3.4</version>
     </dependency>
+    -->
     <!--
     <dependency>
       <groupId>org.evosuite</groupId>
@@ -520,6 +522,20 @@
             </plugin>
           </plugins>
         </build>
+      </profile>
+      <profile>
+        <id>randoop</id>
+        <activation>
+          <activeByDefault>false</activeByDefault>
+        </activation>
+        <dependencies>
+          <dependency>
+            <groupId>com.github.randoop</groupId>
+            <artifactId>randoop</artifactId>
+            <version>4.3.4</version>
+            <scope>test</scope>
+          </dependency>
+        </dependencies>
       </profile>
     <!-- addition by Gaia  -->
   </profiles>
