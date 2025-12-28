@@ -1,0 +1,4 @@
+org.apache.bookkeeper.util.foo_ESTest_scaffolding
+org.apache.bookkeeper.util.ByteBufList_ESTest_scaffolding
+org.apache.bookkeeper.bookie.BufferedChannel_ESTest_scaffolding
+org.apache.bookkeeper.bookie.Journal_ESTest_scaffolding
