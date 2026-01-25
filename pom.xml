@@ -1400,21 +1400,6 @@
                 <release>${maven.compiler.release}</release>
               </configuration>
             </plugin>
-              <!-- addition by GAIA to run EVOSUITE -->
-              <!--
-              <plugin>
-                  <groupId>org.evosuite.plugins</groupId>
-                  <artifactId>evosuite-maven-plugin</artifactId>
-                  <version>1.1.0</version>
-                  <configuration>
-                      <excludedClasses>
-                          <excludedClass>org.mockito.internal.creation.bytebuddy.InlineByteBuddyMockMaker</excludedClass>
-                          <excludedClass>org.mockito.internal.creation.bytebuddy.InlineDelegateByteBuddyMockMaker</excludedClass>
-                          <excludedClass>org.mockito.plugins.MockMaker</excludedClass>
-                      </excludedClasses>
-                  </configuration>
-              </plugin>
-              addition by GAIA to run EVOSUITE -->
           </plugins>
         </pluginManagement>
       </build>

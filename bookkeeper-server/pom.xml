@@ -254,21 +254,18 @@
       <scope>test</scope>
     </dependency>
     <!-- addition by GAIA to run EVOSUITE -->
-    <!--
     <dependency>
       <groupId>com.github.randoop</groupId>
       <artifactId>randoop</artifactId>
       <version>4.3.4</version>
     </dependency>
-    -->
-    <!--
     <dependency>
       <groupId>org.evosuite</groupId>
-      <artifactId>evosuite-standalone-runtime</artifactId>
-      <version>1.0.6</version>
-      <scope>test</scope>
+      <artifactId>evosuite-runtime</artifactId>
+      <version>1.1.0</version>
+      <scope>system</scope>
+      <systemPath>/Users/gaiameola/Dev/ISW2/bookkeeper/bookkeeper-server/evosuite-1.1.0.jar</systemPath>
     </dependency>
-    -->
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
@@ -283,6 +280,7 @@
       <version>5.10.0</version>
       <scope>test</scope>
     </dependency>
+    <!-- riattivare se non sto eseguendo Evosuite
     <dependency>
       <groupId>org.mockito</groupId>
       <artifactId>mockito-junit-jupiter</artifactId>
@@ -294,6 +292,18 @@
       <artifactId>mockito-inline</artifactId>
       <version>3.12.4</version>
       <scope>test</scope>
+    </dependency>
+    -->
+    <!-- riattivare se non sto eseguendo Evosuite -->
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-junit-jupiter</artifactId>
+      <version>4.11.0</version> <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-inline</artifactId>
+      <version>4.11.0</version> <scope>test</scope>
     </dependency>
   </dependencies>
   <build>
@@ -427,10 +437,8 @@
         </configuration>
       </plugin>
       <!-- addition by GAIA to run PIT -->
-
-
       <!-- addition by GAIA to run EVOSUITE -->
-      <!-- <plugin>
+      <plugin>
         <groupId>org.evosuite.plugins</groupId>
         <artifactId>evosuite-maven-plugin</artifactId>
         <version>1.0.6</version>
@@ -438,24 +446,7 @@
           <goals> <goal> prepare </goal> </goals>
           <phase> process-test-classes </phase>
         </execution></executions>
-      </plugin> -->
-      <!-- <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-surefire-plugin</artifactId>
-        <version>${maven-surefire-plugin.version}</version>
-         addition by GAIA to run EVOSUITE
-        <configuration>
-          <properties>
-            <property>
-              <name>listener</name>
-              <value>org.evosuite.runtime.InitializingListener</value>
-            </property>
-          </properties>
-          <forkCount>1</forkCount>
-          <reuseForks>false</reuseForks>
-          <argLine>-Djava.net.preferIPv4Stack=true</argLine>
-        </configuration>
-      </plugin> -->
+      </plugin>
       <!-- addition by GAIA to run EVOSUITE -->
     </plugins>
   </build>
@@ -551,4 +542,10 @@
       </profile>
     <!-- addition by Gaia  -->
   </profiles>
+  <repositories>
+    <repository>
+      <id>EvoSuite</id>
+      <url>https://www.evosuite.org/m2</url>
+    </repository>
+  </repositories>
 </project>
