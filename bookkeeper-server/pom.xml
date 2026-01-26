@@ -259,6 +259,9 @@
       <artifactId>randoop</artifactId>
       <version>4.3.4</version>
     </dependency>
+    <!-- addition by GAIA to run EVOSUITE -->
+    <!-- rimuovi se non stai eseguendo EVOSUITE -->
+    <!--
     <dependency>
       <groupId>org.evosuite</groupId>
       <artifactId>evosuite-runtime</artifactId>
@@ -266,6 +269,8 @@
       <scope>system</scope>
       <systemPath>/Users/gaiameola/Dev/ISW2/bookkeeper/bookkeeper-server/evosuite-1.1.0.jar</systemPath>
     </dependency>
+    -->
+    <!-- addition by GAIA to run EVOSUITE -->
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
@@ -459,6 +464,8 @@
       </plugin>
       <!-- addition by GAIA to run PIT -->
       <!-- addition by GAIA to run EVOSUITE -->
+      <!-- commentare quando non si usa EVOSUITE -->
+      <!--
       <plugin>
         <groupId>org.evosuite.plugins</groupId>
         <artifactId>evosuite-maven-plugin</artifactId>
@@ -468,6 +475,7 @@
           <phase> process-test-classes </phase>
         </execution></executions>
       </plugin>
+      -->
       <!-- addition by GAIA to run EVOSUITE -->
     </plugins>
   </build>
