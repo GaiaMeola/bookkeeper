@@ -254,11 +254,13 @@
       <scope>test</scope>
     </dependency>
     <!-- addition by GAIA to run EVOSUITE -->
+    <!--
     <dependency>
       <groupId>com.github.randoop</groupId>
       <artifactId>randoop</artifactId>
       <version>4.3.4</version>
     </dependency>
+    -->
     <!-- addition by GAIA to run EVOSUITE -->
     <!-- rimuovi se non stai eseguendo EVOSUITE -->
     <!--
@@ -535,6 +537,7 @@
       </build>
     </profile>
     <!-- addition by Gaia  -->
+    <!--
       <profile>
         <id>manual-tests</id>
         <activation>
@@ -548,13 +551,17 @@
               <executions>
                 <execution>
                   <id>default-cli</id>
-                  <phase>none</phase> <!-- disabilita EvoSuite -->
+
+                  <phase>none</phase>
                 </execution>
               </executions>
             </plugin>
           </plugins>
         </build>
       </profile>
+      -->
+    <!-- disabilita EvoSuite -->
+    <!--
       <profile>
         <id>randoop</id>
         <activation>
@@ -569,6 +576,7 @@
           </dependency>
         </dependencies>
       </profile>
+    -->
     <!-- addition by Gaia  -->
-  </profiles>
+</profiles>
 </project>

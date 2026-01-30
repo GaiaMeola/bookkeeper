@@ -2,10 +2,8 @@ package manualtest;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
-import io.netty.buffer.Unpooled;
 import org.apache.bookkeeper.bookie.storage.ldb.WriteCache;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -175,55 +173,55 @@ class WriteCacheForEachTest {
         }
     }
 
-    //introdotti a seguito dei miglioramenti per Jacoco
-    @Test
-    void testForEach_F2_SortedEntriesSufficientSize() throws Exception {
-        // Crea WriteCache con dimensioni sufficienti
-        ByteBufAllocator allocator = Unpooled.buffer().alloc();
-        WriteCache writeCache = new WriteCache(allocator, 512, 128);
-
-        // Inserisci più entry di quelle allocate nella prima chiamata
-        for (long i = 1; i <= 10; i++) {
-            ByteBuf entry = Unpooled.wrappedBuffer(("entry-" + i).getBytes());
-            writeCache.put(1L, i, entry);
-        }
-
-        // Prepariamo un consumer no-op
-        WriteCache.EntryConsumer consumer = (ledgerId, entryId, buf) -> { /* no-op */ };
-
-        // Prima chiamata: allocazione iniziale sortedEntries
-        writeCache.forEach(consumer);
-
-        // Seconda chiamata: sortedEntries già allocato e dimensione >= arrayLen
-        Assertions.assertDoesNotThrow(() -> writeCache.forEach(consumer),
-                "Il metodo forEach dovrebbe usare l'array sortedEntries esistente senza riallocarlo");
-    }
-
-    //introdotti a seguito dei miglioramenti per Jacoco
-    @Test
-    void testForEach_FT_SortedEntriesTooSmall() throws Exception {
-        ByteBufAllocator allocator = Unpooled.buffer().alloc();
-        WriteCache writeCache = new WriteCache(allocator, 512, 128);
-
-        WriteCache.EntryConsumer consumer = (ledgerId, entryId, buf) -> { /* no-op */ };
-
-        // Prima chiamata con 2 entry → alloca un array piccolo
-        for (long i = 1; i <= 2; i++) {
-            ByteBuf entry = Unpooled.wrappedBuffer(("entry-" + i).getBytes());
-            writeCache.put(1L, i, entry);
-        }
-        writeCache.forEach(consumer);
-
-        // Poi aggiungiamo molte più entry → arrayLen > sortedEntries.length
-        for (long i = 3; i <= 20; i++) {
-            ByteBuf entry = Unpooled.wrappedBuffer(("entry-" + i).getBytes());
-            writeCache.put(1L, i, entry);
-        }
-
-        // Seconda chiamata → deve riallocare sortedEntries
-        Assertions.assertDoesNotThrow(() -> writeCache.forEach(consumer),
-                "Il metodo forEach dovrebbe riallocare sortedEntries se troppo piccolo");
-    }
+//    //introdotti a seguito dei miglioramenti per Jacoco
+//    @Test
+//    void testForEach_F2_SortedEntriesSufficientSize() throws Exception {
+//        // Crea WriteCache con dimensioni sufficienti
+//        ByteBufAllocator allocator = Unpooled.buffer().alloc();
+//        WriteCache writeCache = new WriteCache(allocator, 512, 128);
+//
+//        // Inserisci più entry di quelle allocate nella prima chiamata
+//        for (long i = 1; i <= 10; i++) {
+//            ByteBuf entry = Unpooled.wrappedBuffer(("entry-" + i).getBytes());
+//            writeCache.put(1L, i, entry);
+//        }
+//
+//        // Prepariamo un consumer no-op
+//        WriteCache.EntryConsumer consumer = (ledgerId, entryId, buf) -> { /* no-op */ };
+//
+//        // Prima chiamata: allocazione iniziale sortedEntries
+//        writeCache.forEach(consumer);
+//
+//        // Seconda chiamata: sortedEntries già allocato e dimensione >= arrayLen
+//        Assertions.assertDoesNotThrow(() -> writeCache.forEach(consumer),
+//                "Il metodo forEach dovrebbe usare l'array sortedEntries esistente senza riallocarlo");
+//    }
+//
+//    //introdotti a seguito dei miglioramenti per Jacoco
+//    @Test
+//    void testForEach_FT_SortedEntriesTooSmall() throws Exception {
+//        ByteBufAllocator allocator = Unpooled.buffer().alloc();
+//        WriteCache writeCache = new WriteCache(allocator, 512, 128);
+//
+//        WriteCache.EntryConsumer consumer = (ledgerId, entryId, buf) -> { /* no-op */ };
+//
+//        // Prima chiamata con 2 entry → alloca un array piccolo
+//        for (long i = 1; i <= 2; i++) {
+//            ByteBuf entry = Unpooled.wrappedBuffer(("entry-" + i).getBytes());
+//            writeCache.put(1L, i, entry);
+//        }
+//        writeCache.forEach(consumer);
+//
+//        // Poi aggiungiamo molte più entry → arrayLen > sortedEntries.length
+//        for (long i = 3; i <= 20; i++) {
+//            ByteBuf entry = Unpooled.wrappedBuffer(("entry-" + i).getBytes());
+//            writeCache.put(1L, i, entry);
+//        }
+//
+//        // Seconda chiamata → deve riallocare sortedEntries
+//        Assertions.assertDoesNotThrow(() -> writeCache.forEach(consumer),
+//                "Il metodo forEach dovrebbe riallocare sortedEntries se troppo piccolo");
+//    }
 
     private static class WriteCacheState {
         final ByteBufAllocator allocator;

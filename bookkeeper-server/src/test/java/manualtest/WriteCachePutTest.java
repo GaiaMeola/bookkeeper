@@ -173,7 +173,6 @@ class WriteCachePutTest {
             }
 
             // Verifica numero di segmenti allocati (solo se cache > segmento), solo se put è andata a buon fine
-            // Verifica numero di segmenti allocati (solo se cache > segmento), solo se put è andata a buon fine
             if (expectedReturn && s.maxCacheSize > s.maxSegmentSize) {
                 long usedSegments = Arrays.stream(wc.getCacheSegments())
                         .filter(Objects::nonNull)
@@ -217,17 +216,17 @@ class WriteCachePutTest {
         Assertions.assertTrue(wc.put(ledgerId, 1L, entry1), "Put 1L failed");
         Assertions.assertEquals(1L, wc.getLastEntryMap().get(ledgerId), "After first put, lastEntryId should be 1");
 
-        // Caso 2: Inserisco entryId = 0 (più vecchia)
+        // Caso 2: Inserisco entryId = 0 (più vecchia) --> Case OUT of ORDER: T14
         ByteBuf entry0 = fullByteBuf();
         Assertions.assertTrue(wc.put(ledgerId, 0L, entry0), "Put 0L failed (should succeed but not update)");
         Assertions.assertEquals(1L, wc.getLastEntryMap().get(ledgerId), "After older put, lastEntryId should remain 1");
 
-        // Caso 3: Inserisco di nuovo entryId = 1 (duplicato)
+        // Caso 3: Inserisco di nuovo entryId = 1 (duplicato) --> T15
         ByteBuf entry1Dup = fullByteBuf();
         Assertions.assertTrue(wc.put(ledgerId, 1L, entry1Dup), "Put duplicate 1L failed");
         Assertions.assertEquals(1L, wc.getLastEntryMap().get(ledgerId), "After duplicate put, lastEntryId should remain 1");
 
-        // Caso 4: Inserisco entryId = 2 (più nuova)
+        // Caso 4: Inserisco entryId = 2 (più nuova) --> T16
         ByteBuf entry2 = fullByteBuf();
         Assertions.assertTrue(wc.put(ledgerId, 2L, entry2), "Put 2L failed");
         Assertions.assertEquals(2L, wc.getLastEntryMap().get(ledgerId), "After newer put, lastEntryId should update to 2");

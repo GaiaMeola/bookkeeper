@@ -34,6 +34,7 @@ public class SingleDirectoryDbLedgerStorageWriteCacheIT {
     // Ledger "mocked" con WriteCache spy
     // =========================
     private static class MockedDbLedgerStorage extends DbLedgerStorage {
+        @Override
         protected SingleDirectoryDbLedgerStorage newSingleDirectoryDbLedgerStorage(
                 ServerConfiguration conf,
                 LedgerManager ledgerManager,
@@ -129,7 +130,7 @@ public class SingleDirectoryDbLedgerStorageWriteCacheIT {
     // Fase 1: Stub (isolamento)
     // =========================
     @Test
-    public void testAddEntry_stubbed() throws Exception {
+    public void testAddEntry_nominal() throws Exception {
         ByteBuf entry = customByteBuf(2);
 
         // Stub: la cache risponde sempre true; in questo modo non eseguo il metodo reale
@@ -146,7 +147,7 @@ public class SingleDirectoryDbLedgerStorageWriteCacheIT {
     // Fase 2: Mock + Verification (interazione)
     // =========================
     @Test
-    public void testAddEntry_mocked_interaction() throws Exception {
+    public void retryOnInvalidLock() throws Exception {
         ByteBuf entry = customByteBuf(3);
 
         // Simula fallimento della prima put e successo della seconda
@@ -176,5 +177,25 @@ public class SingleDirectoryDbLedgerStorageWriteCacheIT {
         storage.addEntry(entry);
 
         verify(currentWriteCache, atLeast(2)).put(4, 22, entry);
+    }
+
+    // ============================================================
+    // IT_04: Test della partizione "Fallimento Critico / Triple Put"
+    // ============================================================
+    @Test
+    public void triplePutOnExtremeSaturation() throws Exception {
+        ByteBuf entry = customByteBuf(101);
+
+        // Simuliamo lo scenario peggiore:
+        // 1. Prima put fallisce (lock invalido)
+        // 2. Seconda put fallisce (cache satura post-rotazione)
+        // 3. Terza put ha successo (dopo triggerFlushAndAddEntry)
+        doReturn(false, false, true).when(currentWriteCache).put(anyLong(), anyLong(), any());
+
+        storage.addEntry(entry);
+
+        // Verifichiamo che il sistema abbia percorso l'intero albero decisionale
+        // eseguendo tre tentativi prima di stabilizzarsi
+        verify(currentWriteCache, times(3)).put(1, 101, entry);
     }
 }
