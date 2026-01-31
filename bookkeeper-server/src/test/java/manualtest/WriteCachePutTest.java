@@ -103,6 +103,7 @@ class WriteCachePutTest {
                 );
     }
 
+
     @ParameterizedTest
     @MethodSource("data")
     @Timeout(value = 5, threadMode = Timeout.ThreadMode.SEPARATE_THREAD)
@@ -232,28 +233,30 @@ class WriteCachePutTest {
         Assertions.assertEquals(2L, wc.getLastEntryMap().get(ledgerId), "After newer put, lastEntryId should update to 2");
     }
 
-//    //aggiunto a seguito di PIT per uccidere la mutazione a LOC 154 --> test fallito, perché non rispecchia la logica attesa;
-//    //viene modificato in assertFalse soltanto per uccidere la mutazione
-//    @Test
-//    void testPutDetectsMutantAtLoc154() {
-//        int maxSegmentSize = 128;
-//        long maxCacheSize = 256; // due segmenti
-//        WriteCache wc = new WriteCache(unpooledByteBufAllocator(), maxCacheSize, maxSegmentSize);
-//        long ledgerId = 1L;
-//
-//        // Primo segmento già parzialmente occupato: 64 byte
-//        ByteBuf entry1 = Unpooled.buffer(64);
-//        entry1.writeBytes(new byte[64]);
-//        Assertions.assertTrue(wc.put(ledgerId, 1L, entry1), "Primo inserimento dovrebbe riuscire");
-//
-//        // Seconda entry: 128 byte → dovrebbe andare nel secondo segmento
-//        ByteBuf entry2 = Unpooled.buffer(128);
-//        entry2.writeBytes(new byte[128]);
-//
-//        // Con il mutante attivo, questo put fallisce perché calcola male lo spazio nel primo segmento
-//        Assertions.assertTrue(wc.put(ledgerId, 2L, entry2),
-//                "Secondo inserimento dovrebbe andare nel secondo segmento, uccidendo il mutante a LOC 154");
-//    }
+    /*
+    //test fallito, perché non rispecchia la logica attesa;
+    //Tentativo di inserire un'entry nel secondo segmento, perché nel primo non entra
+    @Disabled
+    @Test
+    void testPP3() {
+        int maxSegmentSize = 128;
+        long maxCacheSize = 256; // due segmenti
+        WriteCache wc = new WriteCache(unpooledByteBufAllocator(), maxCacheSize, maxSegmentSize);
+        long ledgerId = 1L;
+
+        // Primo segmento già parzialmente occupato: 64 byte
+        ByteBuf entry1 = Unpooled.buffer(64);
+        entry1.writeBytes(new byte[64]);
+        Assertions.assertTrue(wc.put(ledgerId, 1L, entry1), "Primo inserimento dovrebbe riuscire");
+
+        // Seconda entry: 128 byte → dovrebbe andare nel secondo segmento
+        ByteBuf entry2 = Unpooled.buffer(128);
+        entry2.writeBytes(new byte[128]);
+
+        // Con il mutante attivo, questo put fallisce perché calcola male lo spazio nel primo segmento
+        Assertions.assertTrue(wc.put(ledgerId, 2L, entry2),
+                "Secondo inserimento dovrebbe andare nel secondo segmento, uccidendo il mutante a LOC 154");
+    }*/
 
     private static final class WriteCacheState {
         private final ByteBufAllocator allocator;

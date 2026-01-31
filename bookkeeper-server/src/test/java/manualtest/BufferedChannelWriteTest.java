@@ -16,6 +16,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.stream.Stream;
 
 import static customutils.Utils.*;
@@ -86,6 +87,50 @@ class BufferedChannelWriteTest {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    @Test
+    void testJW1_BufferFullTriggersFlush() throws IOException {
+        String contentToWrite = BC_BB_CONTENT; // "Byte Buffer?!", lunghezza 13
+        int halfLength = contentToWrite.length() / 2; // 6 byte
+
+        // Pulizia file
+        Path path = Paths.get(BC_TEST_FILE);
+        if (Files.exists(path)) Files.delete(path);
+        Files.createFile(path);
+
+        FileChannel fc = FileChannel.open(path,
+                StandardOpenOption.READ, StandardOpenOption.WRITE);
+
+        BufferedChannel bc = new BufferedChannel(
+                unpooledByteBufAllocator(),
+                fc,
+                halfLength, // writeCapacity = 6
+                100,
+                0 // unpersistedBytesBound
+        );
+
+        ByteBuf src = Unpooled.copiedBuffer(contentToWrite.getBytes(StandardCharsets.UTF_8));
+        bc.write(src);
+
+        // Lettura dal FileChannel: devono esserci i primi 12 byte
+        ByteBuffer fcContent = ByteBuffer.allocate(contentToWrite.length());
+        fc.position(0);
+        fc.read(fcContent);
+        fcContent.flip();
+        String writtenFcContent = new String(fcContent.array(), 0, fcContent.limit(), StandardCharsets.UTF_8);
+
+        String expectedFcContent = contentToWrite.substring(0, 12); // primi 12 byte
+        Assertions.assertEquals(expectedFcContent, writtenFcContent,
+                "I byte che saturano il buffer devono essere scritti sul file channel");
+
+        // Il buffer ora deve contenere l'ultimo byte
+        String expectedRemaining = contentToWrite.substring(12); // ultimo byte "!"
+        String remainingContent = bc.getWriteBuffer().toString(StandardCharsets.UTF_8);
+        Assertions.assertEquals(expectedRemaining, remainingContent,
+                "Il resto dei byte deve rimanere nel writeBuffer");
+        Assertions.assertEquals(1, bc.getWriteBuffer().readableBytes(),
+                "Il writeBuffer deve contenere esattamente 1 byte rimanente");
     }
 
     @ParameterizedTest
@@ -177,50 +222,6 @@ class BufferedChannelWriteTest {
             }
         }
     }
-
-//    @Test
-//    void testJW1_BufferFullTriggersFlush() throws IOException {
-//        String contentToWrite = BC_BB_CONTENT; // "Byte Buffer?!", lunghezza 13
-//        int halfLength = contentToWrite.length() / 2; // 6 byte
-//
-//        // Pulizia file
-//        Path path = Paths.get(BC_TEST_FILE);
-//        if (Files.exists(path)) Files.delete(path);
-//        Files.createFile(path);
-//
-//        FileChannel fc = FileChannel.open(path,
-//                StandardOpenOption.READ, StandardOpenOption.WRITE);
-//
-//        BufferedChannel bc = new BufferedChannel(
-//                unpooledByteBufAllocator(),
-//                fc,
-//                halfLength, // writeCapacity = 6
-//                100,
-//                0 // unpersistedBytesBound
-//        );
-//
-//        ByteBuf src = Unpooled.copiedBuffer(contentToWrite.getBytes(StandardCharsets.UTF_8));
-//        bc.write(src);
-//
-//        // Lettura dal FileChannel: devono esserci i primi 12 byte
-//        ByteBuffer fcContent = ByteBuffer.allocate(contentToWrite.length());
-//        fc.position(0);
-//        fc.read(fcContent);
-//        fcContent.flip();
-//        String writtenFcContent = new String(fcContent.array(), 0, fcContent.limit(), StandardCharsets.UTF_8);
-//
-//        String expectedFcContent = contentToWrite.substring(0, 12); // primi 12 byte
-//        Assertions.assertEquals(expectedFcContent, writtenFcContent,
-//                "I byte che saturano il buffer devono essere scritti sul file channel");
-//
-//        // Il buffer ora deve contenere l'ultimo byte
-//        String expectedRemaining = contentToWrite.substring(12); // ultimo byte "!"
-//        String remainingContent = bc.getWriteBuffer().toString(StandardCharsets.UTF_8);
-//        Assertions.assertEquals(expectedRemaining, remainingContent,
-//                "Il resto dei byte deve rimanere nel writeBuffer");
-//        Assertions.assertEquals(1, bc.getWriteBuffer().readableBytes(),
-//                "Il writeBuffer deve contenere esattamente 1 byte rimanente");
-//    }
 //
 //    //aggiunto dopo l'analisi di PIT'
 //    @Test

@@ -2,6 +2,7 @@ package manualtest;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
+import io.netty.buffer.Unpooled;
 import org.apache.bookkeeper.bookie.BufferedChannel;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -121,7 +122,7 @@ class BufferedChannelReadTest {
                     // //test T19; test passato
                     Arguments.of(valid, BC_BB_CONTENT, emptyByteBuf(), BC_FC_CONTENT.length()+BC_BB_CONTENT.length(), 1, Exception.class, -1),
 
-                    //test J_R1; test passato
+//                  //test J_R1; test passato
                     Arguments.of(wbNullWriteState, BC_BB_CONTENT, emptyByteBuf(),  BC_FC_CONTENT.length() + BC_BB_CONTENT.length() - 1, 1, null, 0)
             );
         } catch (IOException e) {
@@ -200,211 +201,37 @@ class BufferedChannelReadTest {
         }
     }
 
-//    @Test
-//    void testJR2_ReadBufferConditionCoverage() throws IOException {
-//        // Prepariamo il BufferedChannel normale
-//        BufferedChannel bc = new BufferedChannel(
-//                unpooledByteBufAllocator(),
-//                validFileChannel(),
-//                100, // writeCapacity
-//                100, // readCapacity
-//                1    // unpersistedBytesBound
-//        );
-//
-//        // Clear del readBuffer per forzare la lettura da file
-//        clearReadBuffer(bc);
-//
-//        // Primo read: legge i primi 5 byte
-//        ByteBuf dest1 = Unpooled.buffer(5); // buffer almeno grande quanto il length
-//        int read1 = bc.read(dest1, 0, 5);
-//        Assertions.assertEquals(5, read1);
-//
-//        // Il readBufferStartPosition ora è stato aggiornato a pos=0
-//        // Secondo read: leggiamo in una posizione più piccola per far entrare il ramo readBufferStartPosition > pos
-//        ByteBuf dest2 = Unpooled.buffer(5); // di nuovo, almeno grande quanto length
-//        int read2 = bc.read(dest2, 0, 5);
-//
-//        // Verifica solo che ritorni la dimensione letta corretta
-//        Assertions.assertEquals(5, read2);
-//
-//        String expectedContent = (BC_FC_CONTENT + BC_BB_CONTENT).substring(0, 5);
-//        String actualContent = dest2.toString(StandardCharsets.UTF_8);
-//        Assertions.assertEquals(expectedContent, actualContent);
-//    }
-//
-//    @Test
-//    void testJR3_ReadWithinBufferedRange() throws IOException {
-//        // BufferedChannel con file di almeno 10 byte
-//        BufferedChannel bc = new BufferedChannel(
-//                unpooledByteBufAllocator(),
-//                validFileChannel(), // assicurati che contenga almeno 10 byte
-//                100,
-//                100,
-//                1
-//        );
-//
-//        clearReadBuffer(bc); //invalido il read buffer
-//
-//        // Prima lettura: carichiamo i primi 10 byte nel buffer
-//        ByteBuf dest1 = Unpooled.buffer(10);
-//        int read1 = bc.read(dest1, 0, 10);
-//        Assertions.assertEquals(10, read1);
-//
-//        // Seconda lettura: pos=0, length=5 (tutto nel buffer già caricato)
-//        ByteBuf dest2 = Unpooled.buffer(5);
-//        int read2 = bc.read(dest2, 0, 5);
-//        Assertions.assertEquals(5, read2);
-//
-//        String expected = (BC_FC_CONTENT + BC_BB_CONTENT).substring(0, 5);
-//        String actual = dest2.toString(StandardCharsets.UTF_8);
-//        Assertions.assertEquals(expected, actual);
-//    }
-//
-//    @Test
-//    void testJR4_ReadFullyWithinBuffer() throws IOException {
-//        BufferedChannel bc = new BufferedChannel(
-//                unpooledByteBufAllocator(),
-//                validFileChannel(),
-//                100,
-//                100,
-//                1
-//        );
-//
-//        clearReadBuffer(bc);
-//
-//        // Carico 10 byte nel readBuffer
-//        ByteBuf tmp = Unpooled.buffer(10);
-//        int readTmp = bc.read(tmp, 0, 10);
-//        Assertions.assertEquals(10, readTmp);
-//
-//        // Leggo nuovamente, questa volta completamente nel buffer: pos=2, length=5
-//        ByteBuf dest = Unpooled.buffer(5);
-//        int read = bc.read(dest, 2, 5);
-//        Assertions.assertEquals(5, read);
-//
-//        // Controllo contenuto letto
-//        String expected = (BC_FC_CONTENT + BC_BB_CONTENT).substring(2, 7);
-//        String actual = dest.toString(StandardCharsets.UTF_8);
-//        Assertions.assertEquals(expected, actual);
-//    }
-//
-//    //aggiunto dopo PIT
-//    @Test
-//    void testWriteBufferNull_PosEqualsWriteBufferStartPosition_killsBoundary() throws IOException {
-//        // BufferedChannel con writeBuffer nullo
-//        BufferedChannel bc = bufferedChannelWithNullWriteBuffer(
-//                unpooledByteBufAllocator(),
-//                validFileChannel(),
-//                100, 100, 1
-//        );
-//
-//        // Invalida il readBuffer per forzare che non venga usato
-//        clearReadBuffer(bc);
-//
-//        // Forziamo il writeBufferStartPosition a un valore noto (il confine)
-//        long confine = 3L;
-//        bc.getWriteBufferStartPosition().set(confine);
-//
-//        // Chiediamo di leggere a pos == confine
-//        ByteBuf dest = Unpooled.buffer(1);
-//        int read = bc.read(dest, confine, 1);
-//
-//        // ASSERT: comportamento atteso nel codice corretto = nessun byte letto (0)
-//        Assertions.assertEquals(0, read, "Se pos == writeBufferStartPosition e writeBuffer == null, il read deve restituire 0 (break).");
-//    }
-//
-//    //per uccidere la mutazione a LOC 272
-//    @Test
-//    void testReadBufferBytesToCopy_subtractionBoundary_killsAdditionMutant_withNullWriteBuffer() throws IOException {
-//        // BufferedChannel con writeBuffer nullo
-//        BufferedChannel bc = bufferedChannelWithNullWriteBuffer(
-//                unpooledByteBufAllocator(),
-//                validFileChannel(),
-//                100,  // writeCapacity
-//                10,   // readCapacity (buffer piccolo così lo gestiamo meglio)
-//                1
-//        );
-//
-//        // Invalida il readBuffer per forzare la lettura dal file
-//        clearReadBuffer(bc);
-//
-//        // Primo read: riempiamo completamente il readBuffer con i primi 10 byte
-//        ByteBuf tmp = Unpooled.buffer(10);
-//        int bytesRead = bc.read(tmp, 0, 10);
-//        Assertions.assertEquals(10, bytesRead);
-//
-//        // Partiamo da una posizione interna al buffer (non 0)
-//        int startPos = 3;
-//
-//        // Quanti byte restano nel readBuffer da startPos in poi?
-//        int remainingInReadBuffer = bytesRead - startPos; // 10 - 3 = 7
-//
-//        // Creiamo un ByteBuf di destinazione molto più grande del necessario
-//        ByteBuf dest = Unpooled.buffer(20); // writableBytes > remainingInReadBuffer
-//
-//        // Leggiamo esattamente remainingInReadBuffer byte
-//        int read = bc.read(dest, startPos, remainingInReadBuffer);
-//
-//        // ASSERT: il metodo originale deve restituire esattamente i byte rimasti
-//        Assertions.assertEquals(remainingInReadBuffer, read);
-//
-//        String expected = (BC_FC_CONTENT + BC_BB_CONTENT)
-//                .substring(startPos, startPos + remainingInReadBuffer);
-//        Assertions.assertEquals(expected, dest.toString(StandardCharsets.UTF_8));
-//    }
-//
-//    // Test bordo inferiore: pos == readBufferStartPosition
-//    @Test
-//    void testReadBuffer_lowerBoundary_safe() throws IOException {
-//        BufferedChannel bc = new BufferedChannel(unpooledByteBufAllocator(), validFileChannel(), 100, 10, 1);
-//        clearReadBuffer(bc);
-//
-//        // Riempie il buffer con 5 byte
-//        ByteBuf tmp = Unpooled.buffer(5);
-//        int filled = bc.read(tmp, 0, 5);
-//        Assertions.assertEquals(5, filled);
-//
-//        // Legge il primo byte dal buffer
-//        ByteBuf dest = Unpooled.buffer(1);
-//        int read = bc.read(dest, 0, 1);
-//        Assertions.assertEquals(1, read);
-//        Assertions.assertEquals((BC_FC_CONTENT + BC_BB_CONTENT).substring(0,1), dest.toString(StandardCharsets.UTF_8));
-//    }
-//
-//    // Test bordo superiore: ultimo byte del buffer
-//    @Test
-//    void testReadBuffer_upperBoundary_safe() throws IOException {
-//        BufferedChannel bc = new BufferedChannel(unpooledByteBufAllocator(), validFileChannel(), 100, 10, 1);
-//        clearReadBuffer(bc);
-//
-//        // Riempie il buffer con 10 byte
-//        ByteBuf tmp = Unpooled.buffer(10);
-//        int filled = bc.read(tmp, 0, 10);
-//        Assertions.assertEquals(10, filled);
-//
-//        // Legge l'ultimo byte del buffer
-//        ByteBuf dest = Unpooled.buffer(1);
-//        int read = bc.read(dest, 9, 1);
-//        Assertions.assertEquals(1, read);
-//        Assertions.assertEquals((BC_FC_CONTENT + BC_BB_CONTENT).substring(9,10), dest.toString(StandardCharsets.UTF_8));
-//    }
-//
-//    // Test intermedio: lettura parziale all’interno del buffer
-//    @Test
-//    void testReadBuffer_middle_safe() throws IOException {
-//        BufferedChannel bc = new BufferedChannel(unpooledByteBufAllocator(), validFileChannel(), 100, 10, 1);
-//        clearReadBuffer(bc);
-//
-//        ByteBuf tmp = Unpooled.buffer(10);
-//        int filled = bc.read(tmp, 0, 10);
-//        Assertions.assertEquals(10, filled);
-//
-//        // Legge 3 byte a partire dalla posizione 2
-//        ByteBuf dest = Unpooled.buffer(3);
-//        int read = bc.read(dest, 2, 3);
-//        Assertions.assertEquals(3, read);
-//        Assertions.assertEquals((BC_FC_CONTENT + BC_BB_CONTENT).substring(2,5), dest.toString(StandardCharsets.UTF_8));
-//    }
+    @Test
+    void testJR2_ReadBufferConditionCoverage() throws IOException {
+        // Prepariamo il BufferedChannel normale
+        BufferedChannel bc = new BufferedChannel(
+                unpooledByteBufAllocator(),
+                validFileChannel(),
+                100, // writeCapacity
+                100, // readCapacity
+                1    // unpersistedBytesBound
+        );
+
+        // Clear del readBuffer per forzare la lettura da file
+        clearReadBuffer(bc);
+
+        // Primo read: legge i primi 5 byte
+        ByteBuf dest1 = Unpooled.buffer(5); // buffer almeno grande quanto il length
+        int read1 = bc.read(dest1, 0, 5);
+        Assertions.assertEquals(5, read1);
+
+        // Il readBufferStartPosition ora è stato aggiornato a pos=0
+        // Secondo read: leggiamo in una posizione più piccola per far entrare il ramo readBufferStartPosition > pos
+        ByteBuf dest2 = Unpooled.buffer(5); // di nuovo, almeno grande quanto length
+        int read2 = bc.read(dest2, 0, 5);
+
+        // Verifica solo che ritorni la dimensione letta corretta
+        Assertions.assertEquals(5, read2);
+
+        String expectedContent = (BC_FC_CONTENT + BC_BB_CONTENT).substring(0, 5);
+        String actualContent = dest2.toString(StandardCharsets.UTF_8);
+        Assertions.assertEquals(expectedContent, actualContent);
+    }
 
     @AfterEach
     public void deleteTestFile() throws IOException {
