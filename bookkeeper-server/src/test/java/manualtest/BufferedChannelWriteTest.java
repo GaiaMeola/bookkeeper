@@ -20,6 +20,7 @@ import java.nio.file.StandardOpenOption;
 import java.util.stream.Stream;
 
 import static customutils.Utils.*;
+import static org.mockito.Mockito.*;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class BufferedChannelWriteTest {
@@ -222,24 +223,24 @@ class BufferedChannelWriteTest {
             }
         }
     }
-//
-//    //aggiunto dopo l'analisi di PIT'
-//    @Test
-//    void testForceWriteNotCalledWhenShouldForceWriteFalse() throws IOException {
-//        Path path = Paths.get(BC_TEST_FILE);
-//        if (Files.exists(path)) Files.delete(path);
-//        Files.createFile(path);
-//        FileChannel fc = FileChannel.open(path, StandardOpenOption.READ, StandardOpenOption.WRITE);
-//
-//        BufferedChannel bc = new BufferedChannel(unpooledByteBufAllocator(), fc, 1000, 100, 1000);
-//        BufferedChannel spyBc = spy(bc);
-//
-//        ByteBuf src = Unpooled.copiedBuffer("abc".getBytes(StandardCharsets.UTF_8));
-//        spyBc.write(src);
-//
-//        // Verifica che forceWrite NON sia chiamato
-//        verify(spyBc, never()).forceWrite(anyBoolean());
-//    }
+
+    //aggiunto dopo l'analisi di PIT --> T7
+    @Test
+    void testForceWriteNotCalledWhenShouldForceWriteFalse() throws IOException {
+        Path path = Paths.get(BC_TEST_FILE);
+        if (Files.exists(path)) Files.delete(path);
+        Files.createFile(path);
+        FileChannel fc = FileChannel.open(path, StandardOpenOption.READ, StandardOpenOption.WRITE);
+
+        BufferedChannel bc = new BufferedChannel(unpooledByteBufAllocator(), fc, 1000, 100, 1000);
+        BufferedChannel spyBc = spy(bc);
+
+        ByteBuf src = Unpooled.copiedBuffer("abc".getBytes(StandardCharsets.UTF_8));
+        spyBc.write(src);
+
+        // Verifica che forceWrite NON sia chiamato
+        verify(spyBc, never()).forceWrite(anyBoolean());
+    }
 
     @AfterEach
     public void deleteTestFile() throws IOException {
