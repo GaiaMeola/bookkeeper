@@ -27,6 +27,8 @@ class WriteCacheGetTest {
         WriteCacheState invalidZeroCacheSize = new WriteCacheState(unpooledByteBufAllocator(), 0, 1);
         WriteCacheState validSegment = new WriteCacheState(unpooledByteBufAllocator(), 512, 128);
         ByteBuf sampleEntry = lenFullByteBuf(4);
+        // Stato per forzare l'uso del secondo segmento (maxSegmentSize = 256)
+        WriteCacheState multiSegmentState = new WriteCacheState(unpooledByteBufAllocator(), 1024, 256);
 
         return Stream.of(
 
@@ -68,7 +70,10 @@ class WriteCacheGetTest {
                 Arguments.of(validSegment, 10, 20, CacheContentState.WRITTEN, sampleEntry, null),
 
                 // NEW 2: WRITTEN – entry NON corrispondente (cache contiene un’altra entry); test passato
-                Arguments.of(validSegment, 10, 21, CacheContentState.WRITTEN, null, null)
+                Arguments.of(validSegment, 10, 21, CacheContentState.WRITTEN, null, null),
+
+                //aggiunto a seguito dell'analisi con PIT
+                Arguments.of(multiSegmentState, 100, 100, CacheContentState.WRITTEN, sampleEntry, null)
         );
     }
 
@@ -85,13 +90,18 @@ class WriteCacheGetTest {
         WriteCache wc = new WriteCache(s.allocator, s.maxCacheSize, s.maxSegmentSize);
         Assertions.assertNotNull(wc);
 
-        // Se lo stato è WRITTEN, inseriamo direttamente l'entry
         if (cacheState == CacheContentState.WRITTEN && expectedException == null) {
+            if (s.maxSegmentSize < s.maxCacheSize) {
+                // Forza l'avanzamento dell'offset interno al secondo segmento
+                // Scriviamo una entry grande quanto il primo segmento
+                ByteBuf padding = unpooledByteBufAllocator().buffer(s.maxSegmentSize);
+                padding.writeZero(s.maxSegmentSize);
+                wc.put(999, 999, padding);
+            }
+
             if (expectedEntry != null) {
-                // Caso WRITTEN con match: scriviamo esattamente la entry cercata
                 wc.put(ledgerId, entryId, expectedEntry.copy());
             } else {
-                // Caso WRITTEN con mismatch: scriviamo un'altra entry (ledgerId o entryId diverso)
                 wc.put(ledgerId, entryId + 1, lenFullByteBuf(4));
             }
         }
