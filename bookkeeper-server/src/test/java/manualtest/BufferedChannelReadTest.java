@@ -122,6 +122,10 @@ class BufferedChannelReadTest {
                     // //test T19; test passato
                     Arguments.of(valid, BC_BB_CONTENT, emptyByteBuf(), BC_FC_CONTENT.length()+BC_BB_CONTENT.length(), 1, Exception.class, -1),
 
+                    // test P_R0; (Boundary Value Analysis aggiornata a seguito di PIT)
+                    // // test P_R0: pos = 13 (fine file), wBSP è 0 o comunque <= 13.
+                    Arguments.of(wbNullWriteState, null, emptyByteBuf(), 13, 1, null, 0),
+
 //                  //test J_R1; test passato
                     Arguments.of(wbNullWriteState, BC_BB_CONTENT, emptyByteBuf(),  BC_FC_CONTENT.length() + BC_BB_CONTENT.length() - 1, 1, null, 0)
             );
@@ -231,6 +235,26 @@ class BufferedChannelReadTest {
         String expectedContent = (BC_FC_CONTENT + BC_BB_CONTENT).substring(0, 5);
         String actualContent = dest2.toString(StandardCharsets.UTF_8);
         Assertions.assertEquals(expectedContent, actualContent);
+    }
+
+    @Test
+    void testKillMutation272_AdditionSubtraction() throws IOException {
+        // Buffer piccolo (10) per isolare il calcolo matematico
+        BufferedChannel bc = new BufferedChannel(unpooledByteBufAllocator(), validFileChannel(), 100, 10, 1);
+        clearReadBuffer(bc);
+
+        // Carichiamo esattamente 10 byte nel readBuffer
+        ByteBuf tmp = Unpooled.buffer(10);
+        bc.read(tmp, 0, 10);
+
+        int startPos = 3;
+        int expectedToRead = 10 - startPos; // 7
+        ByteBuf dest = Unpooled.buffer(20);
+
+        int actualRead = bc.read(dest, startPos, expectedToRead);
+
+        // L'originale legge 7. Il mutante (10+3) proverebbe a leggerne 13.
+        Assertions.assertEquals(7, actualRead, "Il mutante 272 ha scambiato sottrazione con addizione!");
     }
 
     @AfterEach
