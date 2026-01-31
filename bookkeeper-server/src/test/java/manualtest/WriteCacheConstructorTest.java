@@ -46,7 +46,7 @@ class WriteCacheConstructorTest {
                 Arguments.of(unpooledByteBufAllocator(), 512L, 512, null), //T12
 
                 // T13: Segmento > Cache -> Il SUT lancia IllegalArgumentException (Riga 98)
-                Arguments.of(unpooledByteBufAllocator(), 512L, 513, IllegalArgumentException.class) //T13
+                Arguments.of(unpooledByteBufAllocator(), 512L, 513, IllegalArgumentException.class)//T13
         );
     }
 
@@ -55,14 +55,20 @@ class WriteCacheConstructorTest {
     @Timeout(5)
     void construct(ByteBufAllocator allocator, long maxCacheSize, int maxSegmentSize, Class<? extends Exception> expectedException) {
         if (expectedException != null) {
-            // Per i casi di errore, manteniamo assertThrows
             Assertions.assertThrows(expectedException, () -> new WriteCache(allocator, maxCacheSize, maxSegmentSize));
         } else {
-            // 'Automatic resource management'
             try (WriteCache wc = new WriteCache(allocator, maxCacheSize, maxSegmentSize)) {
                 assertNotNull(wc);
+
+                // Calcolo corretto del residuo
+                int expectedLastSize = (int) (maxCacheSize % maxSegmentSize);
+
+                int lastIdx = wc.getCacheSegments().length - 1;
+                int actualLastSize = wc.getCacheSegments()[lastIdx].capacity();
+
+                assertEquals(expectedLastSize, actualLastSize,
+                        "Errore di allocazione: l'ultimo segmento non ha la dimensione residua attesa.");
             }
-            // Anche se viene lanciata un'eccezione imprevista, la risorsa viene chiusa.
         }
     }
 
