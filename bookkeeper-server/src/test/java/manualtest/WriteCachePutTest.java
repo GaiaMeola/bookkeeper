@@ -35,8 +35,8 @@ class WriteCachePutTest {
         WriteCacheState validOneSegWritten = new WriteCacheState(unpooledByteBufAllocator(), 512, 512, WcType.ONE_SEGMENT_WRITTEN);
         WriteCacheState validHalfSegWritten = new WriteCacheState(unpooledByteBufAllocator(), 512, 512, WcType.HALF_SEGMENT_WRITTEN);
 
-        // WriteCacheState invalidAllocatorState = new WriteCacheState(invalidByteBufAllocator(), 512, 128, WcType.NON_WRITTEN);
-        // WriteCacheState nullAllocatorState = new WriteCacheState(null, 512, 128, WcType.NON_WRITTEN);
+        WriteCacheState invalidAllocatorState = new WriteCacheState(invalidByteBufAllocator(), 512, 256, WcType.NON_WRITTEN);
+        WriteCacheState nullAllocatorState = new WriteCacheState(null, 512, 256, WcType.NON_WRITTEN);
 
         return Stream.of(
 
@@ -50,6 +50,16 @@ class WriteCachePutTest {
                 Arguments.of(nullAllocatorState, 1, 2, fullByteBuf(), false, Exception.class)
                 */
 
+                // Test P1: L'allocatore non viene utilizzato nella fase di put.
+                // I dati sono scritti nei buffer preallocati (cacheSegments), rendendo
+                // lo stato dell'allocatore irrilevante per l'esito dell'operazione.
+                Arguments.of(invalidAllocatorState, 1, 2, fullByteBuf(), true, null),
+
+                // Test P2: Allocatore nullo.
+                // L'assenza di allocazione dinamica durante la put garantisce
+                // la stabilità del metodo anche con riferimento null all'allocatore.
+                Arguments.of(nullAllocatorState, 1, 2, fullByteBuf(), true, null),
+
                 // Test P3: maxCacheSize = 0; test passato
                 Arguments.of(invalidZeroCacheSize, 1, 2, fullByteBuf(), false, null),
 
@@ -62,43 +72,43 @@ class WriteCachePutTest {
                 // P6: Inserimento in segmento completamente pieno; test passato
                 Arguments.of(validOneSegWritten, 1, 2, fullByteBuf(), false, null),
 
-                // Test 1: ledgerId negativo; test passato
+                // P7: ledgerId negativo; test passato
                 Arguments.of(validTwoSegmentUnWritten, -1, 2, fullByteBuf(), false, Exception.class),
 
-                // Test 2: ledgerId nullo (0); test passato
+                // P8: ledgerId nullo (0); test passato
                 Arguments.of(validTwoSegmentUnWritten, 0, 2, fullByteBuf(), true, null),
 
-                // Test 3: ledgerId positivo; test passato
+                // P9: ledgerId positivo; test passato
                 Arguments.of(validTwoSegmentUnWritten, 1, 2, fullByteBuf(), true, null),
 
-                // Test 4: entryId negativo; test passato
+                // P10: entryId negativo; test passato
                 Arguments.of(validTwoSegmentUnWritten, 1, -1, fullByteBuf(), false, Exception.class),
 
-                // Test 5: entryId nullo; test passato
+                // P11: entryId nullo; test passato
                 Arguments.of(validTwoSegmentUnWritten, 1, 0, fullByteBuf(), true, null),
 
-                // Test 6: entryId positivo; test passato
+                // P12: entryId positivo; test passato
                 Arguments.of(validTwoSegmentUnWritten, 1, 1, fullByteBuf(), true, null),
 
-                // Test 7: entryId positivo; test passato
+                // P13: entryId positivo; test passato
                 Arguments.of(validTwoSegmentUnWritten, 1, 2, fullByteBuf(), true, null),
 
-                // Test 8: entry vuota; test passato
+                // P14: entry vuota; test passato
                 Arguments.of(validTwoSegmentUnWritten, 1, 2, emptyByteBuf(), true, null),
 
-                // Test 9: entry che sta in un singolo segmento; test passato
+                // P15: entry che sta in un singolo segmento; test passato
                 Arguments.of(validTwoSegmentUnWritten, 1, 2, lenFullByteBuf(100), true, null),
 
-                // Test 10: entry che supera maxSegmentSize; test passato
+                // P16: entry che supera maxSegmentSize; test passato
                 Arguments.of(validTwoSegmentUnWritten, 1, 2, lenFullByteBuf(300), false, null),
 
-                // Test 11: entry con indice di lettura errato; test passato
+                // P17: entry con indice di lettura errato; test passato
                 Arguments.of(validTwoSegmentUnWritten, 1, 1, invalidReadIndexByteBuf(), false, Exception.class),
 
-                // Test 12: entry deallocata; test passato
+                // P18: entry deallocata; test passato
                 Arguments.of(validTwoSegmentUnWritten, 1, 1, deallocatedByteBuf(), false, Exception.class),
 
-                // Test 13: entry null
+                // P19: entry null
                 Arguments.of(validTwoSegmentUnWritten, 1, 1, null, false, Exception.class)
                 );
     }
