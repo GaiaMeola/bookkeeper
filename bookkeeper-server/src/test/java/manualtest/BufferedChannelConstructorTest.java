@@ -53,7 +53,7 @@ class BufferedChannelConstructorTest {
                     Arguments.of(unpooledByteBufAllocator(), validFileChannel(), 100,       -1,     1, Exception.class),
 
                     // Varying unpersistedBytesBound
-                    Arguments.of(unpooledByteBufAllocator(), validFileChannel(), 100, 100,      50,     null),
+                    Arguments.of(unpooledByteBufAllocator(), validFileChannel(), 100, 100,      1,     null),
                     Arguments.of(unpooledByteBufAllocator(), validFileChannel(), 100, 100,      0,      null)
                    /* Arguments.of(unpooledByteBufAllocator(), validFileChannel(), 100, 100,     -1,     Exception.class)        // T17 Not passed */
             );

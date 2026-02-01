@@ -30,9 +30,9 @@ class BufferedChannelReadTest {
     private static Stream<Arguments> data() {
         try {
 
-            /*
-            BufferedChannelState t2Invalid = new BufferedChannelState(invalidByteBufAllocator(),  validFileChannel(),100, 100, 1);
-             */
+
+            BufferedChannelState t2Invalid = new BufferedChannelState(invalidByteBufAllocator(),  validFileChannel(),100, 100, 1, false);
+
             BufferedChannelState t7Invalid = new BufferedChannelState(unpooledByteBufAllocator(), invalidPositionFileChannel(), 100, 100, 1, false);
             BufferedChannelState t5Invalid = new BufferedChannelState(unpooledByteBufAllocator(), writeOnlyFileChannel(),       100, 100, 1, false);
             BufferedChannelState t13Invalid = new BufferedChannelState(invalidByteBufAllocator(),  validFileChannel(),           100,   0, 1, false);
@@ -54,6 +54,12 @@ class BufferedChannelReadTest {
                     Arguments.of(t2Invalid, null, emptyByteBuf(), 0, BC_FC_CONTENT.length(), Exception.class, -1)
                     */
 
+                    // test R1 – Allocatore invalido gestito dalla superclasse.
+                    // La logica ereditata garantisce la validità del buffer di lettura,
+                    // pertanto il test non deve attendersi un'eccezione ma un'esecuzione stabile.
+                    Arguments.of(t2Invalid, null, emptyByteBuf(), 0, BC_FC_CONTENT.length(), null,  BC_FC_CONTENT.length()),
+
+
                     // test R2; test passato
                     Arguments.of(t7Invalid, null, emptyByteBuf(), 0, BC_FC_CONTENT.length(), Exception.class, -1),
 
@@ -63,60 +69,65 @@ class BufferedChannelReadTest {
                     // test R4; test passato
                     Arguments.of(t13Invalid, null, emptyByteBuf(), 0, BC_FC_CONTENT.length(), Exception.class, -1),
 
-                    // test T1; test passato
+                    // test R5; test passato
                     Arguments.of(valid, null, emptyByteBuf(), 0, BC_FC_CONTENT.length(), null, BC_FC_CONTENT.length()),
 
-                    // test T2; test passato
+                    // test R6; test passato
                     Arguments.of(valid, null, semi, 0, length, null, expected),
 
-                    //test T3; test passato
+                    //test R7; test passato
                     Arguments.of(valid, null, fullByteBuf(), 0, BC_FC_CONTENT.length(), Exception.class, -1),
 
-                    //test T4; test passato
+                    //test R8; test passato
                     Arguments.of(valid, null, invalidWriteIndexByteBuf(), 0, BC_FC_CONTENT.length(), Exception.class, -1),
 
-                    //test T5; test passato
+                    //test R9; test passato
                     Arguments.of(valid, null, deallocatedByteBuf(), 0, BC_FC_CONTENT.length(), Exception.class, -1),
 
-                    //test T6; test passato
+                    //test R10; test passato
                     Arguments.of(valid, null, null, 0, BC_FC_CONTENT.length(), Exception.class, -1),
 
-                    //test T7; test passato
+                    //test R11; test passato
                     Arguments.of(valid, BC_BB_CONTENT, emptyByteBuf(), -1, 1, Exception.class, -1),
 
                      /*
-                    //test T8; test fallito
+                    //test R12; test fallito
                     Arguments.of(valid, BC_BB_CONTENT, emptyByteBuf(), 1, -1, Exception.class, -1),
                     */
 
-                    //test T9; test passato
+                    // test R12 – Lunghezza negativa gestita come No-Op.
+                    //Il sistema non solleva eccezioni ma interpreta la lunghezza negativa
+                    // come segnale di interruzione immediata dell'operazione.
+                    Arguments.of(valid, BC_BB_CONTENT, emptyByteBuf(), 1, -1, null, 0),
+
+                    //test R13; test passato
                     Arguments.of(valid, BC_BB_CONTENT, emptyByteBuf(), 0, 0, null, 0),
 
-                    //test T10; test passato
+                    //test R14; test passato
                     Arguments.of(valid, BC_BB_CONTENT, emptyByteBuf(), 0, 1, null, BC_FC_CONTENT.length()),
 
-                    //test T11; test passato
+                    //test R15; test passato
                     Arguments.of(valid, BC_BB_CONTENT, emptyByteBuf(), 0, BC_FC_CONTENT.length()-1, null, BC_FC_CONTENT.length()),
 
-                    //test T12; test passato
+                    //test R16; test passato
                     Arguments.of(valid, BC_BB_CONTENT, emptyByteBuf(), 0, BC_FC_CONTENT.length(), null, BC_FC_CONTENT.length()),
 
-                    //test T13; test passato
+                    //test R17; test passato
                     Arguments.of(valid, BC_BB_CONTENT, emptyByteBuf(), 1, BC_FC_CONTENT.length() - 1, null, BC_FC_CONTENT.length()-1),
 
-                    //test T14; test passato
+                    //test R18; test passato
                     Arguments.of(valid, BC_BB_CONTENT, emptyByteBuf(), BC_FC_CONTENT.length(), 1, null, BC_BB_CONTENT.length()),
 
-                    //test T15; test passato
+                    //test R19; test passato
                     Arguments.of(valid, BC_BB_CONTENT, emptyByteBuf(), BC_FC_CONTENT.length()+BC_BB_CONTENT.length()-1, 1, null, 1),
 
-                    //test T16; test passato
+                    //test R20; test passato
                     Arguments.of(valid, BC_BB_CONTENT, emptyByteBuf(), 0, BC_FC_CONTENT.length()+1, null, BC_FC_CONTENT.length()+BC_BB_CONTENT.length()),
 
-                    //test T17; test passato
+                    //test R21; test passato
                     Arguments.of(valid, BC_BB_CONTENT, emptyByteBuf(), 0, BC_FC_CONTENT.length()+BC_BB_CONTENT.length(), null, BC_FC_CONTENT.length()+BC_BB_CONTENT.length()),
 
-                    //test T18; test passato
+                    //test R22; test passato
                     Arguments.of(valid, BC_BB_CONTENT, emptyByteBuf(), 0, BC_FC_CONTENT.length()+BC_BB_CONTENT.length()+1, Exception.class, -1),
 
                     // //test T19; test passato

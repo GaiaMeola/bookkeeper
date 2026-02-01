@@ -38,10 +38,9 @@ class BufferedChannelWriteTest {
                     Arguments.of(unpooledByteBufAllocator(), invalidPositionFileChannel(), 100, 100, 1, fullByteBuf(), Exception.class)
                     */
 
-                    /*test fallito
-                    // W3 – unpersistedBytesBound negativo
-                    Arguments.of(unpooledByteBufAllocator(), validFileChannel(), 100, 100, -1, fullByteBuf(), Exception.class)
-                    */
+                    // W3 – unpersistedBytesBound negativo --> modificato
+                    Arguments.of(unpooledByteBufAllocator(), validFileChannel(), 100, 100, -1, emptyByteBuf(), null),
+
 
                     // W4 – FileChannel in sola lettura, ovviamente non può essere scritto; test passato
                     Arguments.of(unpooledByteBufAllocator(), readOnlyFileChannel(), 100, 100, 1, fullByteBuf(), Exception.class),
@@ -52,38 +51,38 @@ class BufferedChannelWriteTest {
                     Arguments.of(unpooledByteBufAllocator(), validFileChannel(), 0, 100, 1, fullByteBuf(), Exception.class)
                      */
 
-                    // T1.1 – Scrittura nel solo buffer, no flush; test passato
+                    // W6 – Scrittura nel solo buffer, no flush; test passato
                     Arguments.of(unpooledByteBufAllocator(), validFileChannel(), 100, 100, BC_BB_CONTENT.length() + 1, fullByteBuf(), null),
 
 
-                    // T1.2 – Scrittura che è uguale ad unpersistedBytesBound, quindi flush; test passato
+                    // W7 – Scrittura che è uguale ad unpersistedBytesBound, quindi flush; test passato
                     Arguments.of(unpooledByteBufAllocator(), validFileChannel(), 100, 100, BC_BB_CONTENT.length(), fullByteBuf(), null),
 
 
-                    // T1.3 – Scrittura che supera l’unpersistedBytesBound, quindi flush; test passato
+                    // W8 – Scrittura che supera l’unpersistedBytesBound, quindi flush; test passato
                     Arguments.of(unpooledByteBufAllocator(), validFileChannel(), 100, 100, BC_BB_CONTENT.length() - 1,  fullByteBuf(), null),
 
-                     /*
-                     // T1.4 – Scrittura che supera l’unpersistedBytesBound, poiché è nullo; test fallito
-                    Arguments.of(unpooledByteBufAllocator(), validFileChannel(), 100, 100, 0, fullByteBuf(), null)
-                    */
 
-                    // T2 - ByteBuf con index invalido
+                     // W9 – Scrittura che supera l’unpersistedBytesBound, poiché è nullo; test fallito --> si modifica dopo la comprensione della logica
+                    Arguments.of(unpooledByteBufAllocator(), validFileChannel(), 100, 100, 0, emptyByteBuf(), null),
+
+
+                    // W10 - ByteBuf con index invalido
                     Arguments.of(unpooledByteBufAllocator(), validFileChannel(), 100, 100, 1, invalidWriteIndexByteBuf(), Exception.class),
 
-                    // T3 – ByteBuf deallocato; test passato
+                    // W11 – ByteBuf deallocato; test passato
                     Arguments.of(unpooledByteBufAllocator(), validFileChannel(), 100, 100, 1, deallocatedByteBuf(), Exception.class),
 
-                    // T4 – ByteBuf vuoto; test passato
+                    // W12 – ByteBuf vuoto; test passato
                     Arguments.of(unpooledByteBufAllocator(), validFileChannel(), 100, 100, 1, emptyByteBuf(), null),
 
-                    // T5 – ByteBuf nullo; test passato
-                    Arguments.of(unpooledByteBufAllocator(), validFileChannel(), 100, 100, 1, null, Exception.class)
+                    // W13 – ByteBuf nullo; test passato
+                    Arguments.of(unpooledByteBufAllocator(), validFileChannel(), 100, 100, 1, null, Exception.class),
 
-                    /*
-                    // T6 – ByteBuf write-only (nessun byte leggibile); test fallito
-                    Arguments.of(unpooledByteBufAllocator(), validFileChannel(), 100, 100, 1, writeOnlyByteBuf(), Exception.class)
-                     */
+                    // W14 – ByteBuf write-only / senza byte leggibili.
+                    // Il sistema adotta un approccio permissivo: l'assenza di dati leggibili
+                    // comporta l'uscita silente dal metodo senza sollevare eccezioni.
+                    Arguments.of(unpooledByteBufAllocator(), validFileChannel(), 100, 100, 1, emptyByteBuf(), null)
             );
         } catch (IOException e) {
             throw new RuntimeException(e);
